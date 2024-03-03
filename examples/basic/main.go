@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	// steps:
-	// 1)
+	// TODO: Work in progress... currently not possible to cast to Backend
 	backend, _ = imgui.CreateBackend(ebitenbackend.NewBackend())
 }

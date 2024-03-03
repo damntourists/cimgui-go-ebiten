@@ -206,6 +206,9 @@ func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData, 
 			if cmd.HasUserCallback() {
 				cmd.CallUserCallback(clist)
 			} else {
+				// TODO: Work in progress...
+				// 	Currently cmd.ClipRect() is not being respected in vmultiply() call below...
+
 				//clipRect := cmd.ClipRect()
 				texid := cmd.TextureId()
 				tx := txcache.GetTexture(texid)

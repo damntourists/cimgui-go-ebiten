@@ -5,10 +5,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Texture struct {
-	tex *imgui.Texture
-}
-
 type TextureCache interface {
 	FontAtlasTextureID() imgui.TextureID
 	SetFontAtlasTextureID(id imgui.TextureID)
@@ -16,9 +12,11 @@ type TextureCache interface {
 	SetTexture(id imgui.TextureID, img *ebiten.Image)
 	RemoveTexture(id imgui.TextureID)
 	ResetFontAtlasCache(filter ebiten.Filter)
+	NextId() int
 }
 
 type textureCache struct {
+	startIndex     int
 	fontAtlasID    imgui.TextureID
 	fontAtlasImage *ebiten.Image
 	cache          map[imgui.TextureID]*ebiten.Image
@@ -26,6 +24,10 @@ type textureCache struct {
 }
 
 var _ TextureCache = (*textureCache)(nil)
+
+func (c *textureCache) NextId() int {
+	return len(c.cache) + c.startIndex
+}
 
 func (c *textureCache) getFontAtlas() *ebiten.Image {
 	if c.fontAtlasImage == nil {
@@ -41,7 +43,6 @@ func (c *textureCache) FontAtlasTextureID() imgui.TextureID {
 
 func (c *textureCache) SetFontAtlasTextureID(id imgui.TextureID) {
 	c.fontAtlasID = id
-	// c.fontAtlasImage = nil
 }
 
 func (c *textureCache) GetTexture(id imgui.TextureID) *ebiten.Image {
@@ -66,15 +67,14 @@ func (c *textureCache) ResetFontAtlasCache(filter ebiten.Filter) {
 	c.dfilter = filter
 }
 
-var id1 = 1
-
-//func NewCache() TextureCache {
-//	return &textureCache{
-//		fontAtlasID:    imgui.TextureID{Data: uintptr(id1)},
-//		cache:          make(map[imgui.TextureID]*ebiten.Image),
-//		fontAtlasImage: nil,
-//	}
-//}
+func NewCache() TextureCache {
+	return &textureCache{
+		startIndex:     2,
+		fontAtlasID:    imgui.TextureID{Data: uintptr(1)},
+		cache:          make(map[imgui.TextureID]*ebiten.Image),
+		fontAtlasImage: nil,
+	}
+}
 
 //type TextureManager interface {
 //	CreateTexture(pixels unsafe.Pointer, width, Height int) imgui.TextureID

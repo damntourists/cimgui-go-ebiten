@@ -1,6 +1,7 @@
 package ebitenbackend
 
 import "C"
+
 import (
 	"fmt"
 	imgui "github.com/AllenDang/cimgui-go"
@@ -51,6 +52,10 @@ type WindowCloseCallback[BackendFlagsT ~int] func(b Backend[BackendFlagsT])
 */
 
 type (
+	Texture struct {
+		tex *imgui.Texture
+	}
+
 	BackendBridge struct {
 		hookAfterCreateContext   func()
 		hookBeforeDestroyContext func()
@@ -71,10 +76,10 @@ type (
 		//sizeChangeCallback   imgui.SizeChangeCallback
 		sizeChangedCbFn imgui.SizeChangeCallback
 
-		defaultFontTextureID imgui.TextureID
-		fontAtlas            *imgui.FontAtlas
-		io                   *imgui.IO
-		ctx                  *imgui.Context
+		//defaultFontTextureID imgui.TextureID
+		fontAtlas *imgui.FontAtlas
+		io        *imgui.IO
+		ctx       *imgui.Context
 
 		game   ebiten.Game
 		filter ebiten.Filter
@@ -107,8 +112,8 @@ type (
 func NewBackend() *BackendBridge {
 	b := &BackendBridge{
 		// From what I understand, the default font is always 1
-		defaultFontTextureID: imgui.TextureID{Data: uintptr(id1)},
-		filter:               ebiten.FilterNearest,
+		cache:  NewCache(),
+		filter: ebiten.FilterNearest,
 	}
 
 	runtime.SetFinalizer(b, (*BackendBridge[EbitenWindowFlags]).onfinalize)
@@ -360,35 +365,29 @@ func (u *BackendBridge) SetIcons(icons ...image.Image) {
 	ebiten.SetWindowIcon(icons)
 }
 
-func (u *BackendBridge) CreateTextureAs(texture imgui.TextureID, pixels unsafe.Pointer, width, height int) imgui.TextureID {
-	pix := PremultiplyPixels(pixels, width, height)
-
-	eimg := ebiten.NewImage(width, height)
-	eimg.WritePixels(pix)
-
-	u.cache.SetTexture(texture, eimg)
-	return texture
-}
-
 func (u *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
-	pix := PremultiplyPixels(pixels, width, height)
-
 	eimg := ebiten.NewImage(width, height)
-	eimg.WritePixels(pix)
+	eimg.WritePixels(PremultiplyPixels(pixels, width, height))
 
-	img := eimg.SubImage(eimg.Bounds())
+	// TODO: Work in progress...
+	//img := eimg.SubImage(eimg.Bounds())
 
-	imgui.NewTextureFromRgba()
+	//imgui.NewTextureFromRgba()
 
-	u.cache.SetTexture(t, eimg)
-	return t
+	//u.cache.SetTexture(t, eimg)
+	return nil
 }
 
 func (u *BackendBridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
-	fmt.Println("create texture rgba was called")
-	tex := imgui.NewTextureFromRgba(img)
-	// TODO Rework to store this in a texture cache.
-	return tex.ID()
+	//imgui.NewTextureFromRgba() calls this internally!
+	eimg := ebiten.NewImage(width, height)
+	pix := img.Pix
+	eimg.WritePixels(PremultiplyPixels(unsafe.Pointer(&pix), width, height))
+
+	t := imgui.TextureID{} // ....problem, we can't set texture id currently.
+	// TODO: Work in progress...
+
+	return t
 }
 
 func (u *BackendBridge) DeleteTexture(id imgui.TextureID) {
