@@ -1,9 +1,9 @@
 package ebitenbackend
 
 import (
-	"cimgui-go-ebiten/internal/native"
 	"fmt"
 	imgui "github.com/AllenDang/cimgui-go"
+	"github.com/damntourists/cimgui-go-ebiten/internal/native"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	"unsafe"
@@ -31,7 +31,7 @@ type cImDrawVertx64 struct {
 	Col uint32
 }
 
-func PremultiplyPixels(pixels unsafe.Pointer, width, height int) []uint8 {
+func premultiplyPixels(pixels unsafe.Pointer, width, height int) []uint8 {
 	n := width * height
 	srcPix := (*[1 << 28]uint8)(pixels)[: n*4 : n*4]
 	pix := make([]uint8, n*4)

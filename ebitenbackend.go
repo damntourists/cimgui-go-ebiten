@@ -97,7 +97,7 @@ func NewBackend() imgui.Backend[EbitenWindowFlags] {
 		filter: ebiten.FilterNearest,
 	}
 
-	runtime.SetFinalizer(b, (*BackendBridge[EbitenWindowFlags]).onfinalize)
+	runtime.SetFinalizer(b, (*BackendBridge).onfinalize)
 
 	bb := (imgui.Backend[EbitenWindowFlags])(b)
 	return bb
@@ -343,7 +343,7 @@ func (b *BackendBridge) SetIcons(icons ...image.Image) {
 
 func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
 	eimg := ebiten.NewImage(width, height)
-	eimg.WritePixels(PremultiplyPixels(pixels, width, height))
+	eimg.WritePixels(premultiplyPixels(pixels, width, height))
 
 	tid := imgui.TextureID{Data: uintptr(b.cache.NextId())}
 	b.cache.SetTexture(tid, eimg)
