@@ -39,16 +39,12 @@ const (
 
 var _ imgui.Backend[EbitenWindowFlags] = &BackendBridge{}
 
-/*
-	Cannot use '&BackendBridge{}' (type *BackendBridge) as the type
-	imgui.Backend[EbitenWindowFlags] Type does not implement
-	'imgui.Backend[EbitenWindowFlags]' need the method:
-	SetCloseCallback(WindowCloseCallback[BackendFlagsT]) have the method:
-	SetCloseCallback(w WindowCloseCallback)
-*/
+//type WindowCloseCallback[EbitenWindowFlags ~int] func(b imgui.Backend[EbitenWindowFlags])
+//type onClose WindowCloseCallback[EbitenWindowFlags]
 
 type (
 	BackendBridge struct {
+		//imgui.Backend[EbitenWindowFlags]
 		hookAfterCreateContext   func()
 		hookBeforeDestroyContext func()
 		hookLoop                 func()
@@ -56,7 +52,7 @@ type (
 		hookAfterRender          func()
 
 		dropCBFn        imgui.DropCallback
-		closeCBFn       imgui.WindowCloseCallback[EbitenWindowFlags] //func(b BackendBridge)
+		closeCBFn       imgui.WindowCloseCallback[EbitenWindowFlags]
 		keyCBFn         imgui.KeyCallback
 		sizeChangedCbFn imgui.SizeChangeCallback
 
@@ -93,24 +89,21 @@ type (
 /*
 WindowCloseCallback is defined as:
 
-	type WindowCloseCallback[BackendFlagsT ~int] func(b Backend[BackendFlagsT])
 */
-type WindowCloseCallback func(b BackendBridge)
 
-func (b *BackendBridge) SetCloseCallback(w WindowCloseCallback) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func NewBackend() *BackendBridge {
+func NewBackend() imgui.Backend[EbitenWindowFlags] {
 	b := &BackendBridge{
 		cache:  NewCache(),
 		filter: ebiten.FilterNearest,
 	}
 
 	runtime.SetFinalizer(b, (*BackendBridge[EbitenWindowFlags]).onfinalize)
-	return b
+
+	bb := (imgui.Backend[EbitenWindowFlags])(b)
+	return bb
 }
+
+func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {}
 
 func (b *BackendBridge) SetBgColor(color imgui.Vec4) {
 	b.bgColor = color

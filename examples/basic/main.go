@@ -7,5 +7,7 @@ import (
 
 func main() {
 	// TODO: Work in progress... currently not possible to cast to Backend
-	backend, _ = imgui.CreateBackend(ebitenbackend.NewBackend())
+	b, _ := imgui.CreateBackend(ebitenbackend.NewBackend())
+	b.SetWindowTitle("hello")
+
 }
