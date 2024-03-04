@@ -40,23 +40,14 @@ const (
 var _ imgui.Backend[EbitenWindowFlags] = &BackendBridge{}
 
 /*
-Cannot use '&BackendBridge{}' (type *BackendBridge) as the type
-
+	Cannot use '&BackendBridge{}' (type *BackendBridge) as the type
 	imgui.Backend[EbitenWindowFlags] Type does not implement
 	'imgui.Backend[EbitenWindowFlags]' need the method:
-	SetCloseCallback(WindowCloseCallback[BackendFlagsT]) have
-	the method: SetCloseCallback(cbfun func(b BackendBridge))
-
-WindowCloseCallback is defined as:
-type WindowCloseCallback[BackendFlagsT ~int] func(b Backend[BackendFlagsT])
+	SetCloseCallback(WindowCloseCallback[BackendFlagsT]) have the method:
+	SetCloseCallback(w WindowCloseCallback)
 */
-type WindowCloseCallback func(b BackendBridge)
 
 type (
-	Texture struct {
-		tex *imgui.Texture
-	}
-
 	BackendBridge struct {
 		hookAfterCreateContext   func()
 		hookBeforeDestroyContext func()
@@ -65,7 +56,7 @@ type (
 		hookAfterRender          func()
 
 		dropCBFn        imgui.DropCallback
-		closeCBFn       func(b BackendBridge)
+		closeCBFn       imgui.WindowCloseCallback[EbitenWindowFlags] //func(b BackendBridge)
 		keyCBFn         imgui.KeyCallback
 		sizeChangedCbFn imgui.SizeChangeCallback
 
@@ -99,6 +90,18 @@ type (
 	}
 )
 
+/*
+WindowCloseCallback is defined as:
+
+	type WindowCloseCallback[BackendFlagsT ~int] func(b Backend[BackendFlagsT])
+*/
+type WindowCloseCallback func(b BackendBridge)
+
+func (b *BackendBridge) SetCloseCallback(w WindowCloseCallback) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewBackend() *BackendBridge {
 	b := &BackendBridge{
 		cache:  NewCache(),
@@ -111,10 +114,6 @@ func NewBackend() *BackendBridge {
 
 func (b *BackendBridge) SetBgColor(color imgui.Vec4) {
 	b.bgColor = color
-}
-
-func (b *BackendBridge) SetCloseCallback(cbfun WindowCloseCallback) {
-	b.closeCBFn = cbfun
 }
 
 func (b *BackendBridge) SetWindowFlags(flag EbitenWindowFlags, value int) {
@@ -304,7 +303,6 @@ func (b *BackendBridge) Run(f func()) {
 }
 
 func (b *BackendBridge) Refresh() {
-	// call refresh /update on ebiten pxlgame
 	fmt.Println("refresh called")
 }
 
@@ -313,8 +311,8 @@ func (b *BackendBridge) SetWindowPos(x, y int) {
 }
 
 func (b *BackendBridge) GetWindowPos() (x, y int32) {
-	a, b := ebiten.WindowPosition()
-	return int32(a), int32(b)
+	xx, yy := ebiten.WindowPosition()
+	return int32(xx), int32(yy)
 }
 
 func (b *BackendBridge) SetWindowSize(width, height int) {
@@ -333,8 +331,8 @@ func (b *BackendBridge) DisplaySize() (width, height int32) {
 	return int32(b.width), int32(b.height)
 }
 
-func (b *BackendBridge) SetShouldClose(b bool) {
-	ebiten.SetWindowClosingHandled(b)
+func (b *BackendBridge) SetShouldClose(shouldClose bool) {
+	ebiten.SetWindowClosingHandled(shouldClose)
 }
 
 func (b *BackendBridge) ContentScale() (xScale, yScale float32) {
@@ -354,28 +352,17 @@ func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) 
 	eimg := ebiten.NewImage(width, height)
 	eimg.WritePixels(PremultiplyPixels(pixels, width, height))
 
-	// TODO: Work in progress...
-	//img := eimg.SubImage(eimg.Bounds())
+	tid := imgui.TextureID{Data: uintptr(b.cache.NextId())}
+	b.cache.SetTexture(tid, eimg)
 
-	//imgui.NewTextureFromRgba()
-
-	//u.cache.SetTexture(t, eimg)
-	return nil
+	return tid
 }
 
 func (b *BackendBridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
-	//imgui.NewTextureFromRgba() calls this internally!
-	eimg := ebiten.NewImage(width, height)
 	pix := img.Pix
-	eimg.WritePixels(PremultiplyPixels(unsafe.Pointer(&pix), width, height))
-
-	t := imgui.TextureID{} // ....problem, we can't set texture id currently.
-	// TODO: Work in progress...
-
-	return t
+	return b.CreateTexture(unsafe.Pointer(&pix), width, height)
 }
 
 func (b *BackendBridge) DeleteTexture(id imgui.TextureID) {
-	fmt.Println("delete texture was called")
-	// TODO Rework to store this in a texture cache.
+	b.cache.RemoveTexture(id)
 }
