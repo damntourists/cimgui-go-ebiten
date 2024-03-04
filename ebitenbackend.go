@@ -41,6 +41,7 @@ var _ imgui.Backend[EbitenWindowFlags] = &BackendBridge{}
 
 /*
 Cannot use '&BackendBridge{}' (type *BackendBridge) as the type
+
 	imgui.Backend[EbitenWindowFlags] Type does not implement
 	'imgui.Backend[EbitenWindowFlags]' need the method:
 	SetCloseCallback(WindowCloseCallback[BackendFlagsT]) have
@@ -48,8 +49,8 @@ Cannot use '&BackendBridge{}' (type *BackendBridge) as the type
 
 WindowCloseCallback is defined as:
 type WindowCloseCallback[BackendFlagsT ~int] func(b Backend[BackendFlagsT])
-
 */
+type WindowCloseCallback func(b BackendBridge)
 
 type (
 	Texture struct {
@@ -61,22 +62,13 @@ type (
 		hookBeforeDestroyContext func()
 		hookLoop                 func()
 		hookBeforeRender         func()
+		hookAfterRender          func()
 
-		hookAfterRender func()
-		//beforeRender         func()
-		beforeRender func()
-		//afterRender          func()
-		afterRenderFn func()
-		//dropCB               imgui.DropCallback
-		dropCBFn imgui.DropCallback
-		//closeCB              func(b BackendBridge)
-		closeCBFn func(b BackendBridge)
-		//keyCb                imgui.KeyCallback
-		keyCBFn imgui.KeyCallback
-		//sizeChangeCallback   imgui.SizeChangeCallback
+		dropCBFn        imgui.DropCallback
+		closeCBFn       func(b BackendBridge)
+		keyCBFn         imgui.KeyCallback
 		sizeChangedCbFn imgui.SizeChangeCallback
 
-		//defaultFontTextureID imgui.TextureID
 		fontAtlas *imgui.FontAtlas
 		io        *imgui.IO
 		ctx       *imgui.Context
@@ -90,11 +82,9 @@ type (
 		lmask *ebiten.Image
 
 		cache                     TextureCache
-		windowFlags               EbitenWindowFlags
 		width, height             float32
 		screenWidth, screenHeight int
-
-		bgColor imgui.Vec4
+		bgColor                   imgui.Vec4
 
 		ClipMask bool
 
@@ -111,7 +101,6 @@ type (
 
 func NewBackend() *BackendBridge {
 	b := &BackendBridge{
-		// From what I understand, the default font is always 1
 		cache:  NewCache(),
 		filter: ebiten.FilterNearest,
 	}
@@ -121,14 +110,14 @@ func NewBackend() *BackendBridge {
 }
 
 func (b *BackendBridge) SetBgColor(color imgui.Vec4) {
-	// TODO
+	b.bgColor = color
 }
 
-func (b *BackendBridge) SetCloseCallback(cbfun BackendBridge) {
-	// TODO
+func (b *BackendBridge) SetCloseCallback(cbfun WindowCloseCallback) {
+	b.closeCBFn = cbfun
 }
 
-func (u *BackendBridge) SetWindowFlags(flag EbitenWindowFlags, value int) {
+func (b *BackendBridge) SetWindowFlags(flag EbitenWindowFlags, value int) {
 	//TODO implement me
 	switch flag {
 	case EbitenWindowFlagsResizable:
@@ -149,32 +138,32 @@ func (u *BackendBridge) SetWindowFlags(flag EbitenWindowFlags, value int) {
 
 }
 
-func (u *BackendBridge) SetAfterCreateContextHook(f func()) {
-	u.hookAfterCreateContext = f
+func (b *BackendBridge) SetAfterCreateContextHook(f func()) {
+	b.hookAfterCreateContext = f
 }
 
-func (u *BackendBridge) SetBeforeDestroyContextHook(f func()) {
-	u.hookBeforeDestroyContext = f
+func (b *BackendBridge) SetBeforeDestroyContextHook(f func()) {
+	b.hookBeforeDestroyContext = f
 }
 
-func (u *BackendBridge) SetBeforeRenderHook(f func()) {
-	u.hookBeforeRender = f
+func (b *BackendBridge) SetBeforeRenderHook(f func()) {
+	b.hookBeforeRender = f
 }
 
-func (u *BackendBridge) SetAfterRenderHook(f func()) {
-	u.hookAfterRender = f
+func (b *BackendBridge) SetAfterRenderHook(f func()) {
+	b.hookAfterRender = f
 }
 
-func (u *BackendBridge) SetKeyCallback(callback imgui.KeyCallback) {
-	u.keyCBFn = callback
+func (b *BackendBridge) SetKeyCallback(callback imgui.KeyCallback) {
+	b.keyCBFn = callback
 }
 
-func (u *BackendBridge) SetSizeChangeCallback(callback imgui.SizeChangeCallback) {
-	u.sizeChangedCbFn = callback
+func (b *BackendBridge) SetSizeChangeCallback(callback imgui.SizeChangeCallback) {
+	b.sizeChangedCbFn = callback
 }
 
-func (u *BackendBridge) SetDropCallback(callback imgui.DropCallback) {
-	u.dropCBFn = callback
+func (b *BackendBridge) SetDropCallback(callback imgui.DropCallback) {
+	b.dropCBFn = callback
 }
 
 func (b *BackendBridge) SetGame(g ebiten.Game) *BackendBridge {
@@ -182,23 +171,23 @@ func (b *BackendBridge) SetGame(g ebiten.Game) *BackendBridge {
 	return b
 }
 
-func (u *BackendBridge) onfinalize() {
-	runtime.SetFinalizer(u, nil)
-	u.ctx.Destroy()
+func (b *BackendBridge) onfinalize() {
+	runtime.SetFinalizer(b, nil)
+	b.ctx.Destroy()
 }
 
-func (u *BackendBridge) Update() error {
-	if u.hookLoop == nil {
+func (b *BackendBridge) Update() error {
+	if b.hookLoop == nil {
 		panic("UI Loop function not set!")
 	}
 
 	cx, cy := ebiten.CursorPosition()
-	u.io.SetMousePos(imgui.Vec2{X: float32(cx), Y: float32(cy)})
-	u.io.SetMouseButtonDown(0, ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft))
-	u.io.SetMouseButtonDown(1, ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight))
-	u.io.SetMouseButtonDown(2, ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle))
+	b.io.SetMousePos(imgui.Vec2{X: float32(cx), Y: float32(cy)})
+	b.io.SetMouseButtonDown(0, ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft))
+	b.io.SetMouseButtonDown(1, ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight))
+	b.io.SetMouseButtonDown(2, ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle))
 	xoff, yoff := ebiten.Wheel()
-	u.io.AddMouseWheelDelta(float32(xoff), float32(yoff))
+	b.io.AddMouseWheelDelta(float32(xoff), float32(yoff))
 
 	switch imgui.CurrentMouseCursor() {
 	case imgui.MouseCursorNone:
@@ -219,46 +208,42 @@ func (u *BackendBridge) Update() error {
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 	}
 
-	u.hookLoop()
+	b.hookLoop()
 
 	return nil
 }
 
-// Draw draws the pxlgame screen by one frame.
-//
-// The give argument represents a screen image. The updated content is adopted as the pxlgame screen.
-//
-// The frequency of Draw calls depends on the user's environment, especially the monitors refresh rate.
-// For portability, you should not put your pxlgame logic in Draw in general.
-func (u *BackendBridge) Draw(screen *ebiten.Image) {
+// The frequency of Draw calls depends on the user's environment, especially the monitors
+// refresh rate. For portability, you should not put your pxlgame logic in Draw in general.
+func (b *BackendBridge) Draw(screen *ebiten.Image) {
 	// TODO Consider different viewport modes.
 	//   - UI over Game
 	//       - Does this function properly with Imgui set with transparent background?
 	//       - Is docking supported in this mode?
 	//   - Game in UI viewport
 	//       - Consider if we want to crop, fit, etc. This will likely affect mouse deltas
-	u.screenWidth = screen.Bounds().Dx()
-	u.screenHeight = screen.Bounds().Dy()
+	b.screenWidth = screen.Bounds().Dx()
+	b.screenHeight = screen.Bounds().Dy()
 
-	u.game.Draw(screen)
+	b.game.Draw(screen)
 
 	imgui.Render()
 
-	if u.ClipMask {
-		if u.lmask == nil {
+	if b.ClipMask {
+		if b.lmask == nil {
 			sz := screen.Bounds().Size()
-			u.lmask = ebiten.NewImage(sz.X, sz.Y)
+			b.lmask = ebiten.NewImage(sz.X, sz.Y)
 		} else {
 			sz1 := screen.Bounds().Size()
-			sz2 := u.lmask.Bounds().Size()
+			sz2 := b.lmask.Bounds().Size()
 			if sz1.X != sz2.X || sz1.Y != sz2.Y {
-				u.lmask.Dispose()
-				u.lmask = ebiten.NewImage(sz1.X, sz1.Y)
+				b.lmask.Dispose()
+				b.lmask = ebiten.NewImage(sz1.X, sz1.Y)
 			}
 		}
-		RenderMasked(screen, u.lmask, imgui.CurrentDrawData(), u.cache, u.filter)
+		RenderMasked(screen, b.lmask, imgui.CurrentDrawData(), b.cache, b.filter)
 	} else {
-		Render(screen, imgui.CurrentDrawData(), u.cache, u.filter)
+		Render(screen, imgui.CurrentDrawData(), b.cache, b.filter)
 	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
@@ -283,21 +268,21 @@ func (u *BackendBridge) Draw(screen *ebiten.Image) {
 // adjusted with the given outside size.
 //
 // If the pxlgame implements the interface LayoutFer, Layout is never called and LayoutF is called instead.
-func (u *BackendBridge) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+func (b *BackendBridge) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	//TODO implement me
-	u.width = float32(outsideWidth) * float32(ebiten.DeviceScaleFactor())
-	u.height = float32(outsideHeight) * float32(ebiten.DeviceScaleFactor())
+	b.width = float32(outsideWidth) * float32(ebiten.DeviceScaleFactor())
+	b.height = float32(outsideHeight) * float32(ebiten.DeviceScaleFactor())
 
-	u.io.SetDisplaySize(imgui.Vec2{X: u.width, Y: u.height})
+	b.io.SetDisplaySize(imgui.Vec2{X: b.width, Y: b.height})
 
-	return int(u.width), int(u.height)
+	return int(b.width), int(b.height)
 }
 
-func (u *BackendBridge) CreateWindow(title string, width, height int) {
+func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	// actually just sets up window. Run creates the window. This is
 	// to satisfy the interface.
-	u.ctx = imgui.CreateContext()
-	u.io = imgui.CurrentIO()
+	b.ctx = imgui.CreateContext()
+	b.io = imgui.CurrentIO()
 
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
@@ -306,66 +291,66 @@ func (u *BackendBridge) CreateWindow(title string, width, height int) {
 	ebiten.SetWindowSize(width*int(ebiten.DeviceScaleFactor()), height*int(ebiten.DeviceScaleFactor()))
 }
 
-func (u *BackendBridge) SetLoop(update func()) {
-	u.hookLoop = update
+func (b *BackendBridge) SetLoop(update func()) {
+	b.hookLoop = update
 }
 
-func (u *BackendBridge) Game() ebiten.Game {
-	return u.game
+func (b *BackendBridge) Game() ebiten.Game {
+	return b.game
 }
 
-func (u *BackendBridge) Run(f func()) {
+func (b *BackendBridge) Run(f func()) {
 	f()
 }
 
-func (u *BackendBridge) Refresh() {
+func (b *BackendBridge) Refresh() {
 	// call refresh /update on ebiten pxlgame
 	fmt.Println("refresh called")
 }
 
-func (u *BackendBridge) SetWindowPos(x, y int) {
+func (b *BackendBridge) SetWindowPos(x, y int) {
 	ebiten.SetWindowPosition(x, y)
 }
 
-func (u *BackendBridge) GetWindowPos() (x, y int32) {
+func (b *BackendBridge) GetWindowPos() (x, y int32) {
 	a, b := ebiten.WindowPosition()
 	return int32(a), int32(b)
 }
 
-func (u *BackendBridge) SetWindowSize(width, height int) {
+func (b *BackendBridge) SetWindowSize(width, height int) {
 	ebiten.SetWindowSize(width, height)
 }
 
-func (u *BackendBridge) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
+func (b *BackendBridge) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
 	ebiten.SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight)
 }
 
-func (u *BackendBridge) SetWindowTitle(title string) {
+func (b *BackendBridge) SetWindowTitle(title string) {
 	ebiten.SetWindowTitle(title)
 }
 
-func (u *BackendBridge) DisplaySize() (width, height int32) {
-	return int32(u.width), int32(u.height)
+func (b *BackendBridge) DisplaySize() (width, height int32) {
+	return int32(b.width), int32(b.height)
 }
 
-func (u *BackendBridge) SetShouldClose(b bool) {
+func (b *BackendBridge) SetShouldClose(b bool) {
 	ebiten.SetWindowClosingHandled(b)
 }
 
-func (u *BackendBridge) ContentScale() (xScale, yScale float32) {
+func (b *BackendBridge) ContentScale() (xScale, yScale float32) {
 	scale := ebiten.DeviceScaleFactor()
 	return float32(scale), float32(scale)
 }
 
-func (u *BackendBridge) SetTargetFPS(fps uint) {
+func (b *BackendBridge) SetTargetFPS(fps uint) {
 	ebiten.SetTPS(int(fps))
 }
 
-func (u *BackendBridge) SetIcons(icons ...image.Image) {
+func (b *BackendBridge) SetIcons(icons ...image.Image) {
 	ebiten.SetWindowIcon(icons)
 }
 
-func (u *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
+func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
 	eimg := ebiten.NewImage(width, height)
 	eimg.WritePixels(PremultiplyPixels(pixels, width, height))
 
@@ -378,7 +363,7 @@ func (u *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) 
 	return nil
 }
 
-func (u *BackendBridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
+func (b *BackendBridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
 	//imgui.NewTextureFromRgba() calls this internally!
 	eimg := ebiten.NewImage(width, height)
 	pix := img.Pix
@@ -390,7 +375,7 @@ func (u *BackendBridge) CreateTextureRgba(img *image.RGBA, width, height int) im
 	return t
 }
 
-func (u *BackendBridge) DeleteTexture(id imgui.TextureID) {
+func (b *BackendBridge) DeleteTexture(id imgui.TextureID) {
 	fmt.Println("delete texture was called")
 	// TODO Rework to store this in a texture cache.
 }
