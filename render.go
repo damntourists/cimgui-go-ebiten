@@ -9,6 +9,8 @@ import (
 	"unsafe"
 )
 
+var framesRendered int = 0
+
 type cVec2x32 struct {
 	X float32
 	Y float32
@@ -172,7 +174,8 @@ func RenderMasked(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.Draw
 }
 
 func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData, txcache TextureCache, dfilter ebiten.Filter) {
-	//targetSize := target.Bounds().Size()
+	framesRendered += 1
+	targetSize := target.Bounds().Size()
 	if !drawData.Valid() {
 		return
 	}
@@ -186,9 +189,9 @@ func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData, 
 	}
 	//var opt2 *ebiten.DrawImageOptions
 	//if mask != nil {
-	//	opt2 = &ebiten.DrawImageOptions{
-	//		Blend: ebiten.BlendSourceOver,
-	//	}
+	//opt2 = &ebiten.DrawImageOptions{
+	//	Blend: ebiten.BlendSourceOver,
+	//}
 	//}
 
 	for _, clist := range drawData.CommandLists() {
@@ -209,29 +212,17 @@ func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData, 
 				// TODO: Work in progress...
 				// 	Currently cmd.ClipRect() is not being respected in vmultiply() call below...
 
-				//clipRect := cmd.ClipRect()
+				clipRect := cmd.ClipRect()
 				texid := cmd.TextureId()
 				tx := txcache.GetTexture(texid)
-				//if mask == nil ||
-				//	(clipRect.X == 0 &&
-				//		clipRect.Y == 0 &&
-				//		clipRect.Z == float32(targetSize.X) &&
-				//		clipRect.W == float32(targetSize.Y)) {
-
 				vmultiply(vertices, vbuf, tx.Bounds().Min, tx.Bounds().Max)
-				//}
-				//
-				target.DrawTriangles(vbuf, indices[indexBufferOffset:indexBufferOffset+ecount], tx, opt)
-				//} else {
-				//	mask.Clear()
-				//	//opt2.GeoM.Reset()
-				//	//opt2.GeoM.Translate(float64(clipRect.X), float64(clipRect.Y))
-				//	mask.DrawTriangles(vbuf, indices[indexBufferOffset:indexBufferOffset+ecount], tx, opt)
-				//	//target.DrawImage(mask.SubImage(image.Rectangle{
-				//	//	Min: image.Pt(int(clipRect.X), int(clipRect.Y)),
-				//	//	Max: image.Pt(int(clipRect.Z), int(clipRect.W)),
-				//	//}).(*ebiten.Image), opt2)
-				//}
+				if mask == nil ||
+					(clipRect.X == 0 &&
+						clipRect.Y == 0 &&
+						clipRect.Z == float32(targetSize.X) &&
+						clipRect.W == float32(targetSize.Y)) {
+					target.DrawTriangles(vbuf, indices[indexBufferOffset:indexBufferOffset+ecount], tx, opt)
+				}
 
 			}
 			indexBufferOffset += ecount

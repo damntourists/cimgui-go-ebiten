@@ -13,8 +13,6 @@ var adapter = ebitenbackend.NewEbitenAdapter()
 type MyGame struct{}
 
 func (m MyGame) Draw(screen *ebiten.Image) {
-	println("mygame draw!")
-
 	var tileSize = 32
 
 	var gridColor = color.RGBA{R: 100, G: 100, B: 100, A: 1}
@@ -42,19 +40,34 @@ func (m MyGame) Draw(screen *ebiten.Image) {
 }
 
 func (m MyGame) Update() error {
-	//println("mygame update called!")
-	imgui.NewFrame()
-
 	imgui.Begin("Demo Window")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
+	imgui.Text("Hello World!")
 	imgui.Text("Hello World!")
 	imgui.End()
 
-	defer imgui.EndFrame()
 	return nil
 }
 
 func (m MyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	println("mygame layout called!")
 	return outsideWidth, outsideHeight
 }
 

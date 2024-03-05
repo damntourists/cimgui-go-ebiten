@@ -1,12 +1,15 @@
 package ebitenbackend
 
 import (
+	"fmt"
 	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"image"
 	"runtime"
 )
 
+var currentAdapter *EbitenAdapter
 
 // Adapter should proxy calls to backend.
 type Adapter interface {
@@ -15,7 +18,7 @@ type Adapter interface {
 	SetBeforeRenderHook(func())
 	SetAfterRenderHook(func())
 
-	SetBgColor(color Vec4)
+	SetBgColor(color imgui.Vec4)
 	Run(func())
 	Refresh()
 
@@ -40,8 +43,6 @@ type Adapter interface {
 	SetIcons(icons ...image.Image)
 	CreateWindow(title string, width, height int)
 
-
-
 	//CreateWindow(title string, width, height int)
 	//SetWindowPos(x, y int)
 	//Run(func())
@@ -60,100 +61,218 @@ type EbitenAdapter struct {
 	loop    func()
 }
 
+type GameProxy struct {
+	game    ebiten.Game
+	adapter *EbitenAdapter
+
+	width, height             float64
+	screenWidth, screenHeight int
+
+	filter ebiten.Filter
+}
+
+func (g GameProxy) Update() error {
+	if g.game == nil {
+		panic("No game to update!")
+	}
+
+	io := imgui.CurrentIO()
+	io.SetDeltaTime(1.0 / 60.0)
+	imgui.NewFrame()
+
+	err := g.game.Update()
+	cx, cy := ebiten.CursorPosition()
+	io.SetMousePos(imgui.Vec2{X: float32(cx), Y: float32(cy)})
+	io.SetMouseButtonDown(0, ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft))
+	io.SetMouseButtonDown(1, ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight))
+	io.SetMouseButtonDown(2, ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle))
+	xoff, yoff := ebiten.Wheel()
+	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
+
+	switch imgui.CurrentMouseCursor() {
+	case imgui.MouseCursorNone:
+		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
+	case imgui.MouseCursorArrow:
+		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
+	case imgui.MouseCursorTextInput:
+		ebiten.SetCursorShape(ebiten.CursorShapeText)
+	case imgui.MouseCursorResizeAll:
+		ebiten.SetCursorShape(ebiten.CursorShapeCrosshair)
+	case imgui.MouseCursorResizeEW:
+		ebiten.SetCursorShape(ebiten.CursorShapeEWResize)
+	case imgui.MouseCursorResizeNS:
+		ebiten.SetCursorShape(ebiten.CursorShapeNSResize)
+	case imgui.MouseCursorHand:
+		ebiten.SetCursorShape(ebiten.CursorShapePointer)
+	default:
+		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
+	}
+
+	imgui.EndFrame()
+
+	return err
+}
+
+func (g GameProxy) Draw(screen *ebiten.Image) {
+	g.game.Draw(screen)
+	//if b.ClipMask {
+	//	if b.lmask == nil {
+	//		sz := screen.Bounds().Size()
+	//		b.lmask = ebiten.NewImage(sz.X, sz.Y)
+	//	} else {
+	//		sz1 := screen.Bounds().Size()
+	//		sz2 := b.lmask.Bounds().Size()
+	//		if sz1.X != sz2.X || sz1.Y != sz2.Y {
+	//			b.lmask.Dispose()
+	//			b.lmask = ebiten.NewImage(sz1.X, sz1.Y)
+	//		}
+	//	}
+	//	RenderMasked(screen, b.lmask, imgui.CurrentDrawData(), b.cache, b.filter)
+	//} else {
+
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+
+	imgui.Render()
+	Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
+}
+
+/*
+
+// The frequency of Draw calls depends on the user's environment, especially the monitors
+// refresh rate. For portability, you should not put your pxlgame logic in Draw in general.
+func (b *BackendBridge) Draw(screen *ebiten.Image) {
+	// TODO Consider different viewport modes.
+	//   - UI over Game
+	//       - Does this function properly with Imgui set with transparent background?
+	//       - Is docking supported in this mode?
+	//   - Game in UI viewport
+	//       - Consider if we want to crop, fit, etc. This will likely affect mouse deltas
+	b.screenWidth = screen.Bounds().Dx()
+	b.screenHeight = screen.Bounds().Dy()
+
+	b.Game.Draw(screen)
+
+	imgui.Render()
+
+	if b.ClipMask {
+		if b.lmask == nil {
+			sz := screen.Bounds().Size()
+			b.lmask = ebiten.NewImage(sz.X, sz.Y)
+		} else {
+			sz1 := screen.Bounds().Size()
+			sz2 := b.lmask.Bounds().Size()
+			if sz1.X != sz2.X || sz1.Y != sz2.Y {
+				b.lmask.Dispose()
+				b.lmask = ebiten.NewImage(sz1.X, sz1.Y)
+			}
+		}
+		RenderMasked(screen, b.lmask, imgui.CurrentDrawData(), b.cache, b.filter)
+	} else {
+		Render(screen, imgui.CurrentDrawData(), b.cache, b.filter)
+	}
+
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+}
+func (b *BackendBridge) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	//TODO implement me
+	b.width = float32(outsideWidth) * float32(ebiten.DeviceScaleFactor())
+	b.height = float32(outsideHeight) * float32(ebiten.DeviceScaleFactor())
+
+	b.io.SetDisplaySize(imgui.Vec2{X: b.width, Y: b.height})
+
+	return int(b.width), int(b.height)
+}
+
+*/
+
+func (g GameProxy) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	g.width = float64(outsideWidth) * ebiten.DeviceScaleFactor()
+	g.height = float64(outsideHeight) * ebiten.DeviceScaleFactor()
+
+	io := imgui.CurrentIO()
+	io.SetDisplaySize(imgui.Vec2{X: float32(g.width), Y: float32(g.height)})
+
+	return int(g.width), int(g.height)
+}
+
 func (a *EbitenAdapter) SetBeforeDestroyContextHook(f func()) {
-	a.
+	a.backend.SetBeforeDestroyContextHook(f)
 }
 
 func (a *EbitenAdapter) SetBeforeRenderHook(f func()) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetBeforeRenderHook(f)
 }
 
 func (a *EbitenAdapter) SetAfterRenderHook(f func()) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetAfterRenderHook(f)
 }
 
-func (a *EbitenAdapter) SetBgColor(color interface{}) {
-	//TODO implement me
-	panic("implement me")
+func (a *EbitenAdapter) SetBgColor(color imgui.Vec4) {
+	a.backend.SetBgColor(color)
 }
 
 func (a *EbitenAdapter) Refresh() {
-	//TODO implement me
-	panic("implement me")
+	a.backend.Refresh()
 }
 
 func (a *EbitenAdapter) GetWindowPos() (x, y int32) {
-	//TODO implement me
-	panic("implement me")
+	return a.backend.GetWindowPos()
 }
 
 func (a *EbitenAdapter) SetWindowSize(width, height int) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetWindowSize(width, height)
 }
 
 func (a *EbitenAdapter) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight)
 }
 
 func (a *EbitenAdapter) SetWindowTitle(title string) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetWindowTitle(title)
 }
 
 func (a *EbitenAdapter) DisplaySize() (width, height int32) {
-	//TODO implement me
-	panic("implement me")
+	return a.backend.DisplaySize()
 }
 
 func (a *EbitenAdapter) SetShouldClose(b bool) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetShouldClose(b)
 }
 
 func (a *EbitenAdapter) ContentScale() (xScale, yScale float32) {
-	//TODO implement me
-	panic("implement me")
+	return a.backend.ContentScale()
 }
 
 func (a *EbitenAdapter) SetTargetFPS(fps uint) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetTargetFPS(fps)
 }
 
 func (a *EbitenAdapter) SetIcons(icons ...image.Image) {
-	//TODO implement me
-	panic("implement me")
+	a.backend.SetIcons(icons...)
 }
 
 func (a *EbitenAdapter) Backend() *imgui.Backend[EbitenWindowFlags] {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *EbitenAdapter) UILoop() {
-	//TODO implement me
-	panic("implement me")
+	return &a.backend
 }
 
 func NewEbitenAdapter() *EbitenAdapter {
 	b := &BackendBridge{
-		ctx:    nil,
-		cache:  NewCache(),
-		filter: ebiten.FilterNearest,
+		ctx: nil,
 	}
+
+	Cache = NewCache()
 
 	b.ctx = imgui.CreateContext()
 
 	fonts := imgui.CurrentIO().Fonts()
 	_, _, _, _ = fonts.GetTextureDataAsRGBA32() // call this to force imgui to build the font atlas cache
 
-	txid := imgui.TextureID{Data: uintptr(1)}
-	fonts.SetTexID(txid)
-	b.cache.SetFontAtlasTextureID(txid)
+	b.SetBeforeRenderHook(func() {
+		// TODO
+	})
+	b.SetAfterRenderHook(func() {
+		// TODO
+	})
 
 	bb := (imgui.Backend[EbitenWindowFlags])(b)
 
@@ -163,14 +282,9 @@ func NewEbitenAdapter() *EbitenAdapter {
 		backend: createdBackend,
 	}
 
-	a.backend.SetBeforeRenderHook(func() {
-		println("before render hook!")
-	})
-	a.backend.SetAfterRenderHook(func() {
-		println("after render hook!")
-	})
-
 	runtime.SetFinalizer(&a, (*EbitenAdapter).finalize)
+
+	currentAdapter = &a
 
 	return &a
 }
@@ -180,12 +294,15 @@ func (a *EbitenAdapter) finalize() {
 }
 
 func (a *EbitenAdapter) SetGame(g ebiten.Game) {
-	//a.game = g
-	a.game = g
+
+	a.game = GameProxy{
+		game:   g,
+		filter: ebiten.FilterNearest,
+	}
+
 }
 
 func (a *EbitenAdapter) Game() ebiten.Game {
-	println("ebiten adapter Game() called. ")
 	return a.game
 }
 
@@ -198,15 +315,10 @@ func (a *EbitenAdapter) UILoop() func() {
 }
 
 func (a *EbitenAdapter) Update(delta float32) {
-	println("adapter update!", delta)
 	io := imgui.CurrentIO()
 	io.SetDeltaTime(delta)
 
 	_ = a.game.Update()
-	//if err != nil {
-	//	return
-	//}
-
 }
 
 func (a *EbitenAdapter) SetWindowPos(x, y int) {
