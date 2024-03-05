@@ -39,12 +39,8 @@ const (
 
 var _ imgui.Backend[EbitenWindowFlags] = &BackendBridge{}
 
-//type WindowCloseCallback[EbitenWindowFlags ~int] func(b imgui.Backend[EbitenWindowFlags])
-//type onClose WindowCloseCallback[EbitenWindowFlags]
-
 type (
 	BackendBridge struct {
-		//imgui.Backend[EbitenWindowFlags]
 		hookAfterCreateContext   func()
 		hookBeforeDestroyContext func()
 		hookLoop                 func()
@@ -60,7 +56,6 @@ type (
 		io        *imgui.IO
 		ctx       *imgui.Context
 
-		game   ebiten.Game
 		filter ebiten.Filter
 
 		uiTx   *ebiten.Image
@@ -74,22 +69,9 @@ type (
 		bgColor                   imgui.Vec4
 
 		ClipMask bool
-
-		/*
-			To satisfy TextureManager interface we need to have these:
-			type TextureManager interface {
-				CreateTexture(pixels unsafe.Pointer, width, Height int) TextureID
-				CreateTextureRgba(img *image.RGBA, width, height int) TextureID
-				DeleteTexture(id TextureID)
-			}
-		*/
+		Game     ebiten.Game
 	}
 )
-
-/*
-WindowCloseCallback is defined as:
-
-*/
 
 func NewBackend() imgui.Backend[EbitenWindowFlags] {
 	b := &BackendBridge{
@@ -103,7 +85,18 @@ func NewBackend() imgui.Backend[EbitenWindowFlags] {
 	return bb
 }
 
-func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {}
+//
+//func (b *BackendBridge) SetGame(game ebiten.Game) {
+//	b.game = game
+//}
+//
+//func (b *BackendBridge) Game() *ebiten.Game {
+//	return &b.game
+//}
+
+func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
+	b.closeCBFn = cb
+}
 
 func (b *BackendBridge) SetBgColor(color imgui.Vec4) {
 	b.bgColor = color
@@ -156,11 +149,6 @@ func (b *BackendBridge) SetSizeChangeCallback(callback imgui.SizeChangeCallback)
 
 func (b *BackendBridge) SetDropCallback(callback imgui.DropCallback) {
 	b.dropCBFn = callback
-}
-
-func (b *BackendBridge) SetGame(g ebiten.Game) *BackendBridge {
-	b.game = g
-	return b
 }
 
 func (b *BackendBridge) onfinalize() {
@@ -217,7 +205,7 @@ func (b *BackendBridge) Draw(screen *ebiten.Image) {
 	b.screenWidth = screen.Bounds().Dx()
 	b.screenHeight = screen.Bounds().Dy()
 
-	b.game.Draw(screen)
+	b.Game.Draw(screen)
 
 	imgui.Render()
 
@@ -285,10 +273,6 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 
 func (b *BackendBridge) SetLoop(update func()) {
 	b.hookLoop = update
-}
-
-func (b *BackendBridge) Game() ebiten.Game {
-	return b.game
 }
 
 func (b *BackendBridge) Run(f func()) {

@@ -3,7 +3,7 @@ module github.com/damntourists/cimgui-go-ebiten
 go 1.22
 
 require (
-	github.com/AllenDang/cimgui-go v0.0.0-20240301163024-649dc91a7f3c
+	github.com/AllenDang/cimgui-go v0.0.0-20240303223020-2c7d7a8d1731
 	github.com/hajimehoshi/ebiten/v2 v2.6.6
 )
 
