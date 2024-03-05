@@ -73,17 +73,8 @@ type (
 	}
 )
 
-func NewBackend() imgui.Backend[EbitenWindowFlags] {
-	b := &BackendBridge{
-		cache:  NewCache(),
-		filter: ebiten.FilterNearest,
-	}
-
-	runtime.SetFinalizer(b, (*BackendBridge).onfinalize)
-
-	bb := (imgui.Backend[EbitenWindowFlags])(b)
-	return bb
-}
+//func NewBackend() imgui.Backend[EbitenWindowFlags] {
+//}
 
 //
 //func (b *BackendBridge) SetGame(game ebiten.Game) {
@@ -157,6 +148,11 @@ func (b *BackendBridge) onfinalize() {
 }
 
 func (b *BackendBridge) Update() error {
+	println("backend update called!")
+	//io := imgui.CurrentIO()
+	//io.SetDeltaTime(1.0 / 60.0)
+	//imgui.NewFrame()
+
 	if b.hookLoop == nil {
 		panic("UI Loop function not set!")
 	}
@@ -196,12 +192,14 @@ func (b *BackendBridge) Update() error {
 // The frequency of Draw calls depends on the user's environment, especially the monitors
 // refresh rate. For portability, you should not put your pxlgame logic in Draw in general.
 func (b *BackendBridge) Draw(screen *ebiten.Image) {
+	println("backend draw called!")
 	// TODO Consider different viewport modes.
 	//   - UI over Game
 	//       - Does this function properly with Imgui set with transparent background?
 	//       - Is docking supported in this mode?
 	//   - Game in UI viewport
 	//       - Consider if we want to crop, fit, etc. This will likely affect mouse deltas
+	println("backend bridge drawing...")
 	b.screenWidth = screen.Bounds().Dx()
 	b.screenHeight = screen.Bounds().Dy()
 
@@ -267,8 +265,20 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
 
+	// build fonts
+
 	ebiten.SetWindowTitle(title)
-	ebiten.SetWindowSize(width*int(ebiten.DeviceScaleFactor()), height*int(ebiten.DeviceScaleFactor()))
+	ebiten.SetWindowSize(
+		width*int(ebiten.DeviceScaleFactor()),
+		height*int(ebiten.DeviceScaleFactor()),
+	)
+	b.io.SetDisplaySize(
+		imgui.Vec2{
+			X: float32(width * int(ebiten.DeviceScaleFactor())),
+			Y: float32(width * int(ebiten.DeviceScaleFactor())),
+		},
+	)
+
 }
 
 func (b *BackendBridge) SetLoop(update func()) {
