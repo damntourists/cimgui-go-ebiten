@@ -58,7 +58,6 @@ type (
 
 		lmask *ebiten.Image
 
-		//cache                     TextureCache
 		width, height             float32
 		screenWidth, screenHeight int
 		bgColor                   imgui.Vec4
@@ -135,12 +134,12 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	// to satisfy the interface.
 	b.ctx = imgui.CreateContext()
 	b.io = imgui.CurrentIO()
-	b.io.SetWantSaveIniSettings(false)
+	b.io.SetIniFilename("")
 
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
 
-	// build fonts
+	println(int(ebiten.DeviceScaleFactor()))
 
 	ebiten.SetWindowTitle(title)
 	ebiten.SetWindowSize(
@@ -189,8 +188,18 @@ func (b *BackendBridge) SetWindowTitle(title string) {
 	ebiten.SetWindowTitle(title)
 }
 
-func (b *BackendBridge) DisplaySize() (width, height int32) {
-	return int32(b.width), int32(b.height)
+//func (b *BackendBridge) DisplaySize() (width, height int32) {
+//	return int32(b.width), int32(b.height)
+//}
+
+func (b *BackendBridge) DisplaySize() (width int32, height int32) {
+	//widthArg, widthFin := WrapNumberPtr[C.int, int32](&width)
+	//defer widthFin()
+	//
+	//heightArg, heightFin := WrapNumberPtr[C.int, int32](&height)
+	//defer heightFin()
+	//C.igGLFWWindow_GetDisplaySize(b.handle(), widthArg, heightArg)
+	return
 }
 
 func (b *BackendBridge) SetShouldClose(shouldClose bool) {

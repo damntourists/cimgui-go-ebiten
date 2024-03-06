@@ -33,19 +33,9 @@ type Adapter interface {
 
 	SetTargetFPS(fps uint)
 
-	//SetDropCallback(imgui.DropCallback)
-	//SetCloseCallback(imgui.WindowCloseCallback[BackendFlagsT])
-	//SetKeyCallback(KeyCallback)
-	//SetSizeChangeCallback(SizeChangeCallback)
-	// SetWindowFlags selected hint to specified value.
-	// ATTENTION: This method is able to set only one flag per call.
-	//SetWindowFlags(flag BackendFlagsT, value int)
 	SetIcons(icons ...image.Image)
 	CreateWindow(title string, width, height int)
 
-	//CreateWindow(title string, width, height int)
-	//SetWindowPos(x, y int)
-	//Run(func())
 	Backend() *imgui.Backend[EbitenWindowFlags]
 	SetGame(ebiten.Game)
 	SetUILoop(func())
@@ -122,13 +112,13 @@ func (g GameProxy) Draw(screen *ebiten.Image) {
 }
 
 func (g GameProxy) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	g.width = float64(outsideWidth) * ebiten.DeviceScaleFactor()
-	g.height = float64(outsideHeight) * ebiten.DeviceScaleFactor()
+	width := float64(outsideWidth) * ebiten.DeviceScaleFactor()
+	height := float64(outsideHeight) * ebiten.DeviceScaleFactor()
 
 	io := imgui.CurrentIO()
-	io.SetDisplaySize(imgui.Vec2{X: float32(g.width), Y: float32(g.height)})
+	io.SetDisplaySize(imgui.Vec2{X: float32(width), Y: float32(height)})
 
-	return int(g.width), int(g.height)
+	return int(width), int(height)
 }
 
 func (a *EbitenAdapter) SetBeforeDestroyContextHook(f func()) {
@@ -201,7 +191,7 @@ func NewEbitenAdapter() *EbitenAdapter {
 	b.ctx = imgui.CreateContext()
 
 	fonts := imgui.CurrentIO().Fonts()
-	_, _, _, _ = fonts.GetTextureDataAsRGBA32() // call this to force imgui to build the font atlas cache
+	_, _, _, _ = fonts.GetTextureDataAsRGBA32()
 
 	b.SetBeforeRenderHook(func() {
 		// TODO
