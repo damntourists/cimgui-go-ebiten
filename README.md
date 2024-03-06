@@ -1,10 +1,12 @@
 # cimgui-go-ebiten
-Ebiten backend for [cimgui-go](https://github.com/AllenDang/cimgui-go)! 
+[Ebiten](https://ebitengine.org/) backend for [cimgui-go](https://github.com/AllenDang/cimgui-go)!
+
+![WIP](screenshot_wip.png)
 
 *This is a work in progress!*
 
 ## Important!
-You MUST use the following buildtags when building:
+You MUST use the following buildtags when building.
 * exclude_cimgui_sdli
 * exclude_cimgui_glfw
 
