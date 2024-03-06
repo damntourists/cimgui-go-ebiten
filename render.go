@@ -69,7 +69,7 @@ func getVerticesx32(vbuf unsafe.Pointer, vblen, vsize, offpos, offuv, offcol int
 			SrcX:   rawverts[i].UV.X,
 			SrcY:   rawverts[i].UV.Y,
 			DstX:   rawverts[i].Pos.X,
-			DstY:   rawverts[i].Pos.Y - 10,
+			DstY:   rawverts[i].Pos.Y,
 			ColorR: float32(rawverts[i].Col&0xFF) / 255,
 			ColorG: float32(rawverts[i].Col>>8&0xFF) / 255,
 			ColorB: float32(rawverts[i].Col>>16&0xFF) / 255,
