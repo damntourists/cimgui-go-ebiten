@@ -63,7 +63,7 @@ func (m MyGame) Update() error {
 	imgui.Text("Hello World!")
 	imgui.Text("Hello World!")
 	imgui.End()
-
+	imgui.ShowDemoWindow()
 	return nil
 }
 

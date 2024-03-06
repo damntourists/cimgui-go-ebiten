@@ -56,11 +56,6 @@ type (
 		io        *imgui.IO
 		ctx       *imgui.Context
 
-		//filter ebiten.Filter
-
-		//uiTx   *ebiten.Image
-		//gameTx *ebiten.Image
-
 		lmask *ebiten.Image
 
 		//cache                     TextureCache
@@ -72,18 +67,6 @@ type (
 		Game     ebiten.Game
 	}
 )
-
-//func NewBackend() imgui.Backend[EbitenWindowFlags] {
-//}
-
-//
-//func (b *BackendBridge) SetGame(game ebiten.Game) {
-//	b.game = game
-//}
-//
-//func (b *BackendBridge) Game() *ebiten.Game {
-//	return &b.game
-//}
 
 func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
 	b.closeCBFn = cb
@@ -147,36 +130,12 @@ func (b *BackendBridge) onfinalize() {
 	b.ctx.Destroy()
 }
 
-func (b *BackendBridge) Update() error {
-
-	return nil
-}
-
-// Layout accepts a native outside size in device-independent pixels and returns the pxlgame's logical screen
-// size.
-//
-// On desktops, the outside is a window or a monitor (fullscreen mode). On browsers, the outside is a body
-// element. On mobiles, the outside is the view's size.
-//
-// Even though the outside size and the screen size differ, the rendering scale is automatically adjusted to
-// fit with the outside.
-//
-// Layout is called almost every frame.
-//
-// It is ensured that Layout is invoked before Update is called in the first frame.
-//
-// If Layout returns non-positive numbers, the caller can panic.
-//
-// You can return a fixed screen size if you don't care, or you can also return a calculated screen size
-// adjusted with the given outside size.
-//
-// If the pxlgame implements the interface LayoutFer, Layout is never called and LayoutF is called instead.
-
 func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	// actually just sets up window. Run creates the window. This is
 	// to satisfy the interface.
 	b.ctx = imgui.CreateContext()
 	b.io = imgui.CurrentIO()
+	b.io.SetWantSaveIniSettings(false)
 
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
@@ -257,7 +216,7 @@ func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) 
 
 	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
 	Cache.SetTexture(tid, eimg)
-
+	println("created texture:", tid.Data)
 	return tid
 }
 

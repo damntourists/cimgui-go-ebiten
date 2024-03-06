@@ -115,75 +115,11 @@ func (g GameProxy) Update() error {
 
 func (g GameProxy) Draw(screen *ebiten.Image) {
 	g.game.Draw(screen)
-	//if b.ClipMask {
-	//	if b.lmask == nil {
-	//		sz := screen.Bounds().Size()
-	//		b.lmask = ebiten.NewImage(sz.X, sz.Y)
-	//	} else {
-	//		sz1 := screen.Bounds().Size()
-	//		sz2 := b.lmask.Bounds().Size()
-	//		if sz1.X != sz2.X || sz1.Y != sz2.Y {
-	//			b.lmask.Dispose()
-	//			b.lmask = ebiten.NewImage(sz1.X, sz1.Y)
-	//		}
-	//	}
-	//	RenderMasked(screen, b.lmask, imgui.CurrentDrawData(), b.cache, b.filter)
-	//} else {
-
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 
 	imgui.Render()
 	Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
 }
-
-/*
-
-// The frequency of Draw calls depends on the user's environment, especially the monitors
-// refresh rate. For portability, you should not put your pxlgame logic in Draw in general.
-func (b *BackendBridge) Draw(screen *ebiten.Image) {
-	// TODO Consider different viewport modes.
-	//   - UI over Game
-	//       - Does this function properly with Imgui set with transparent background?
-	//       - Is docking supported in this mode?
-	//   - Game in UI viewport
-	//       - Consider if we want to crop, fit, etc. This will likely affect mouse deltas
-	b.screenWidth = screen.Bounds().Dx()
-	b.screenHeight = screen.Bounds().Dy()
-
-	b.Game.Draw(screen)
-
-	imgui.Render()
-
-	if b.ClipMask {
-		if b.lmask == nil {
-			sz := screen.Bounds().Size()
-			b.lmask = ebiten.NewImage(sz.X, sz.Y)
-		} else {
-			sz1 := screen.Bounds().Size()
-			sz2 := b.lmask.Bounds().Size()
-			if sz1.X != sz2.X || sz1.Y != sz2.Y {
-				b.lmask.Dispose()
-				b.lmask = ebiten.NewImage(sz1.X, sz1.Y)
-			}
-		}
-		RenderMasked(screen, b.lmask, imgui.CurrentDrawData(), b.cache, b.filter)
-	} else {
-		Render(screen, imgui.CurrentDrawData(), b.cache, b.filter)
-	}
-
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
-}
-func (b *BackendBridge) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	//TODO implement me
-	b.width = float32(outsideWidth) * float32(ebiten.DeviceScaleFactor())
-	b.height = float32(outsideHeight) * float32(ebiten.DeviceScaleFactor())
-
-	b.io.SetDisplaySize(imgui.Vec2{X: b.width, Y: b.height})
-
-	return int(b.width), int(b.height)
-}
-
-*/
 
 func (g GameProxy) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	g.width = float64(outsideWidth) * ebiten.DeviceScaleFactor()
