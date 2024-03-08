@@ -49,6 +49,9 @@ type EbitenAdapter struct {
 	backend imgui.Backend[EbitenWindowFlags]
 	game    ebiten.Game
 	loop    func()
+
+	ClipMask bool
+	lmask    *ebiten.Image
 }
 
 type GameProxy struct {
@@ -108,7 +111,24 @@ func (g GameProxy) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 
 	imgui.Render()
-	Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
+
+	if currentAdapter.ClipMask {
+		if currentAdapter.lmask == nil {
+			w, h := screen.Size()
+			currentAdapter.lmask = ebiten.NewImage(w, h)
+		} else {
+			w1, h1 := screen.Size()
+			w2, h2 := currentAdapter.lmask.Size()
+			if w1 != w2 || h1 != h2 {
+				currentAdapter.lmask.Dispose()
+				currentAdapter.lmask = ebiten.NewImage(w1, h1)
+			}
+		}
+		RenderMasked(screen, currentAdapter.lmask, imgui.CurrentDrawData(), Cache, g.filter)
+	} else {
+		Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
+	}
+
 }
 
 func (g GameProxy) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -205,7 +225,8 @@ func NewEbitenAdapter() *EbitenAdapter {
 	createdBackend, _ := imgui.CreateBackend(bb)
 
 	a := EbitenAdapter{
-		backend: createdBackend,
+		backend:  createdBackend,
+		ClipMask: true,
 	}
 
 	runtime.SetFinalizer(&a, (*EbitenAdapter).finalize)

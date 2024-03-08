@@ -33,7 +33,10 @@ func (c *textureCache) getFontAtlas() *ebiten.Image {
 	if c.fontAtlasImage == nil {
 		pixels, width, height, outBytesPerPixel := imgui.CurrentIO().Fonts().GetTextureDataAsRGBA32() // call this to force imgui to build the font atlas cache
 		c.fontAtlasImage = getTexture(pixels, width, height, outBytesPerPixel)
+		c.SetTexture(c.fontAtlasID, c.fontAtlasImage)
+		imgui.CurrentIO().Fonts().SetTexID(c.fontAtlasID)
 	}
+
 	return c.fontAtlasImage
 }
 

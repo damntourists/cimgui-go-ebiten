@@ -139,8 +139,6 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
 
-	println(int(ebiten.DeviceScaleFactor()))
-
 	ebiten.SetWindowTitle(title)
 	ebiten.SetWindowSize(
 		width*int(ebiten.DeviceScaleFactor()),
@@ -225,7 +223,6 @@ func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) 
 
 	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
 	Cache.SetTexture(tid, eimg)
-	println("created texture:", tid.Data)
 	return tid
 }
 

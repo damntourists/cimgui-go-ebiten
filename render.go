@@ -9,19 +9,11 @@ import (
 	"unsafe"
 )
 
-var framesRendered int = 0
-
-type cVec2x32 struct {
-	X float32
-	Y float32
-}
-
 type cImDrawVertx32 struct {
-	Pos cVec2x32
-	UV  cVec2x32
+	Pos struct{ X, Y float32 }
+	UV  struct{ X, Y float32 }
 	Col uint32
 }
-
 type cVec2x64 struct {
 	X float64
 	Y float64
@@ -63,6 +55,7 @@ func getVerticesx32(vbuf unsafe.Pointer, vblen, vsize, offpos, offuv, offcol int
 	if offpos != 0 || offuv != 8 || offcol != 16 {
 		panic("TODO: invalid vertex layout")
 	}
+
 	rawverts := (*[1 << 28]cImDrawVertx32)(vbuf)[:n:n]
 	for i := 0; i < n; i++ {
 		vertices = append(vertices, ebiten.Vertex{
@@ -174,7 +167,6 @@ func RenderMasked(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.Draw
 }
 
 func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData, txcache TextureCache, dfilter ebiten.Filter) {
-	framesRendered += 1
 	targetSize := target.Bounds().Size()
 	if !drawData.Valid() {
 		return
@@ -185,47 +177,44 @@ func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData, 
 
 	opt := &ebiten.DrawTrianglesOptions{
 		Filter: dfilter,
-		Blend:  ebiten.BlendSourceOver,
 	}
-	//var opt2 *ebiten.DrawImageOptions
-	//if mask != nil {
-	//opt2 = &ebiten.DrawImageOptions{
-	//	Blend: ebiten.BlendSourceOver,
-	//}
-	//}
+	var opt2 *ebiten.DrawImageOptions
+	if mask != nil {
+		opt2 = &ebiten.DrawImageOptions{
+			Blend: ebiten.BlendSourceOver,
+		}
+	}
 
 	for _, clist := range drawData.CommandLists() {
-		var indexBufferOffset int
-
 		vertexBuffer, vertexLen := clist.GetVertexBuffer()
 		indexBuffer, indexLen := clist.GetIndexBuffer()
-		vertices := getVertices(vertexBuffer, vertexLen, vertexSize, vertexOffsetPos,
-			vertexOffsetUv, vertexOffsetCol)
+		vertices := getVertices(vertexBuffer, vertexLen, vertexSize, vertexOffsetPos, vertexOffsetUv, vertexOffsetCol)
 		vbuf := vcopy(vertices)
 		indices := getIndices(indexBuffer, indexLen, indexSize)
-
 		for _, cmd := range clist.Commands() {
+			idxOffset := int(cmd.IdxOffset())
+
 			ecount := int(cmd.ElemCount())
 			if cmd.HasUserCallback() {
 				cmd.CallUserCallback(clist)
 			} else {
-				// TODO: Work in progress...
-				// 	Currently cmd.ClipRect() is not being respected in vmultiply() call below...
-
 				clipRect := cmd.ClipRect()
 				texid := cmd.TextureId()
 				tx := txcache.GetTexture(texid)
 				vmultiply(vertices, vbuf, tx.Bounds().Min, tx.Bounds().Max)
-				if mask == nil ||
-					(clipRect.X == 0 &&
-						clipRect.Y == 0 &&
-						clipRect.Z == float32(targetSize.X) &&
-						clipRect.W == float32(targetSize.Y)) {
-					target.DrawTriangles(vbuf, indices[indexBufferOffset:indexBufferOffset+ecount], tx, opt)
+				if mask == nil || (clipRect.X == 0 && clipRect.Y == 0 && clipRect.Z == float32(targetSize.X) && clipRect.W == float32(targetSize.Y)) {
+					target.DrawTriangles(vbuf, indices[idxOffset:idxOffset+ecount], tx, opt)
+				} else {
+					mask.Clear()
+					opt2.GeoM.Reset()
+					opt2.GeoM.Translate(float64(clipRect.X), float64(clipRect.Y))
+					mask.DrawTriangles(vbuf, indices[idxOffset:idxOffset+ecount], tx, opt)
+					target.DrawImage(mask.SubImage(image.Rectangle{
+						Min: image.Pt(int(clipRect.X), int(clipRect.Y)),
+						Max: image.Pt(int(clipRect.Z), int(clipRect.W)),
+					}).(*ebiten.Image), opt2)
 				}
-
 			}
-			indexBufferOffset += ecount
 		}
 	}
 }
