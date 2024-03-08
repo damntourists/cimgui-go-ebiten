@@ -7,6 +7,8 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.6.6
 )
 
+replace github.com/AllenDang/cimgui-go => github.com/damntourists/cimgui-go-lite v0.0.0-20240308200014-8405231d54c2
+
 require (
 	github.com/ebitengine/purego v0.6.0 // indirect
 	github.com/jezek/xgb v1.1.0 // indirect

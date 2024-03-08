@@ -40,29 +40,6 @@ func (m MyGame) Draw(screen *ebiten.Image) {
 }
 
 func (m MyGame) Update() error {
-	imgui.Begin("Demo Window")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.Text("Hello World!")
-	imgui.End()
 	imgui.ShowDemoWindow()
 
 	return nil
@@ -70,15 +47,6 @@ func (m MyGame) Update() error {
 
 func (m MyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return outsideWidth, outsideHeight
-}
-
-func Image(tid imgui.TextureID, size imgui.Vec2) {
-	uv0 := imgui.NewVec2(0, 0)
-	uv1 := imgui.NewVec2(1, 1)
-	border_col := imgui.NewVec4(0, 0, 0, 0)
-	tint_col := imgui.NewVec4(1, 1, 1, 1)
-
-	imgui.ImageV(tid, size, uv0, uv1, tint_col, border_col)
 }
 
 func main() {
