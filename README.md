@@ -33,5 +33,5 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.6.6
 )
 
-replace github.com/AllenDang/cimgui-go => github.com/damntourists/cimgui-go-lite v0.0.0-20240308200014-8405231d54c2
+replace github.com/AllenDang/cimgui-go => github.com/damntourists/cimgui-go-lite v1.0.0
 ```
