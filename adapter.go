@@ -70,7 +70,12 @@ func (g GameProxy) Update() error {
 	}
 
 	io := imgui.CurrentIO()
+	xoff, yoff := ebiten.Wheel()
+
 	io.SetDeltaTime(1.0 / 60.0)
+
+	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
+
 	imgui.NewFrame()
 
 	err := g.game.Update()
@@ -79,8 +84,6 @@ func (g GameProxy) Update() error {
 	io.SetMouseButtonDown(0, ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft))
 	io.SetMouseButtonDown(1, ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight))
 	io.SetMouseButtonDown(2, ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle))
-	xoff, yoff := ebiten.Wheel()
-	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
 
 	switch imgui.CurrentMouseCursor() {
 	case imgui.MouseCursorNone:

@@ -2,13 +2,13 @@ package main
 
 import (
 	imgui "github.com/AllenDang/cimgui-go"
-	ebitenbackend "github.com/damntourists/cimgui-go-ebiten"
+	backend "github.com/damntourists/cimgui-go-ebiten"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
 )
 
-var adapter = ebitenbackend.NewEbitenAdapter()
+var adapter = backend.NewEbitenAdapter()
 
 type MyGame struct{}
 
@@ -50,9 +50,14 @@ func (m MyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeig
 }
 
 func main() {
-	// You MUST use the following buildtags when building:
+	//
+	// The build tags listed below are required to compile with AllenDang/cimgui-go. You
+	// may, however, use the damntourists/cimgui-go-lite to bypass this requirement.
+	// Please refer to the go.mod file for more info.
+	//
 	// * exclude_cimgui_sdli
 	// * exclude_cimgui_glfw
+	//
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	adapter.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
