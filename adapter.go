@@ -2,7 +2,7 @@ package ebitenbackend
 
 import (
 	"fmt"
-	imgui "github.com/AllenDang/cimgui-go"
+	imgui "github.com/damntourists/cimgui-go-lite"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"image"
@@ -76,6 +76,7 @@ func (g GameProxy) Update() error {
 
 	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
 
+	//imgui.CurrentStyle().ScaleAllSizes(float32(ebiten.DeviceScaleFactor()))
 	imgui.NewFrame()
 
 	err := g.game.Update()
@@ -212,9 +213,10 @@ func NewEbitenAdapter() *EbitenAdapter {
 	Cache = NewCache()
 
 	b.ctx = imgui.CreateContext()
+	imgui.ImNodesCreateContext()
 
-	fonts := imgui.CurrentIO().Fonts()
-	_, _, _, _ = fonts.GetTextureDataAsRGBA32()
+	//fonts := imgui.CurrentIO().Fonts()
+	//_, _, _, _ = fonts.GetTextureDataAsRGBA32()
 
 	b.SetBeforeRenderHook(func() {
 		// TODO

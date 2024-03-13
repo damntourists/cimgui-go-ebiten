@@ -2,8 +2,8 @@ package ebitenbackend
 
 import (
 	"fmt"
-	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/damntourists/cimgui-go-ebiten/internal/native"
+	imgui "github.com/damntourists/cimgui-go-lite"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	"unsafe"

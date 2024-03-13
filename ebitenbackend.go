@@ -3,7 +3,7 @@ package ebitenbackend
 import "C"
 
 import (
-	imgui "github.com/AllenDang/cimgui-go"
+	imgui "github.com/damntourists/cimgui-go-lite"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	"runtime"
@@ -136,6 +136,8 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	b.io = imgui.CurrentIO()
 	b.io.SetIniFilename("")
 
+	//b.io.SetConfigFlags(imgui.ConfigFlagsDpiEnableScaleViewports)
+
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
 
@@ -144,6 +146,7 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 		width*int(ebiten.DeviceScaleFactor()),
 		height*int(ebiten.DeviceScaleFactor()),
 	)
+
 	b.io.SetDisplaySize(
 		imgui.Vec2{
 			X: float32(width * int(ebiten.DeviceScaleFactor())),

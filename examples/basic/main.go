@@ -1,8 +1,8 @@
 package main
 
 import (
-	imgui "github.com/AllenDang/cimgui-go"
 	backend "github.com/damntourists/cimgui-go-ebiten"
+	imgui "github.com/damntourists/cimgui-go-lite"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
