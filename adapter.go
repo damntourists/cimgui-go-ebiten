@@ -13,10 +13,10 @@ var currentAdapter *EbitenAdapter
 
 // Adapter should proxy calls to backend.
 type Adapter interface {
-	SetAfterCreateContextHook(func())
-	SetBeforeDestroyContextHook(func())
-	SetBeforeRenderHook(func())
-	SetAfterRenderHook(func())
+	SetAfterCreateContextHook(func())   //noop
+	SetBeforeDestroyContextHook(func()) //noop
+	SetBeforeRenderHook(func())         //noop
+	SetAfterRenderHook(func())          //noop
 
 	SetBgColor(color imgui.Vec4)
 	Run(func())
@@ -39,7 +39,6 @@ type Adapter interface {
 	Backend() *imgui.Backend[EbitenWindowFlags]
 	SetGame(ebiten.Game)
 	SetUILoop(func())
-	UILoop()
 	Game() ebiten.Game
 	Update(float32)
 	finalize()
