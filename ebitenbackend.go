@@ -136,8 +136,6 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	b.io = imgui.CurrentIO()
 	b.io.SetIniFilename("")
 
-	//b.io.SetConfigFlags(imgui.ConfigFlagsDpiEnableScaleViewports)
-
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
 

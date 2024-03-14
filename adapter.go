@@ -51,6 +51,7 @@ type EbitenAdapter struct {
 
 	ClipMask bool
 	lmask    *ebiten.Image
+	cliptxt  string
 }
 
 type GameProxy struct {
@@ -225,7 +226,9 @@ func NewEbitenAdapter() *EbitenAdapter {
 	})
 
 	bb := (imgui.Backend[EbitenWindowFlags])(b)
-
+	bb.SetKeyCallback(func(key, scanCode, action, mods int) {
+		println("key", key, "scanCode", scanCode, "action", action, "mods", mods)
+	})
 	createdBackend, _ := imgui.CreateBackend(bb)
 
 	a := EbitenAdapter{
