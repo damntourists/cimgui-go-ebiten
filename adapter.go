@@ -137,6 +137,7 @@ func (g GameProxy) Update() error {
 
 	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
 
+	currentAdapter.inputChars = sendInput(imgui.CurrentIO(), currentAdapter.inputChars)
 	//imgui.CurrentStyle().ScaleAllSizes(float32(ebiten.DeviceScaleFactor()))
 	imgui.NewFrame()
 
@@ -277,9 +278,10 @@ func NewEbitenAdapter() *EbitenAdapter {
 	imgui.ImNodesCreateContext()
 
 	bb := (imgui.Backend[EbitenWindowFlags])(b)
-	bb.SetKeyCallback(func(key, scanCode, action, mods int) {
-		println("key", key, "scanCode", scanCode, "action", action, "mods", mods)
-	})
+	//bb.SetKeyCallback(func(key, scanCode, action, mods int) {
+	//	println("key", key, "scanCode", scanCode, "action", action, "mods", mods)
+	//})
+
 	createdBackend, _ := imgui.CreateBackend(bb)
 
 	a := EbitenAdapter{
@@ -350,4 +352,5 @@ func (a *EbitenAdapter) setKeyMapping() {
 			// io.KeyMap(int(imguiKey), nativeKey)
 		}
 	*/
+
 }
