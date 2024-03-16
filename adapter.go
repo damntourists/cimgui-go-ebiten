@@ -205,10 +205,22 @@ func (a *EbitenAdapter) finalize() {
 }
 
 func (a *EbitenAdapter) SetGame(g ebiten.Game) {
+
+	gameScreen := ebiten.NewImage(16, 16)
+
+	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
+	Cache.SetTexture(tid, gameScreen)
+
 	a.game = &GameProxy{
-		game:   g,
-		filter: ebiten.FilterNearest,
+		game:                g,
+		filter:              ebiten.FilterNearest,
+		gameScreen:          gameScreen,
+		gameScreenTextureID: tid,
 	}
+}
+
+func (a *EbitenAdapter) ScreenTextureID() imgui.TextureID {
+	return a.ScreenTextureID()
 }
 
 func (a *EbitenAdapter) Game() ebiten.Game {
@@ -254,4 +266,8 @@ func (a *EbitenAdapter) setKeyMapping() {
 			// io.KeyMap(int(imguiKey), nativeKey)
 		}
 	*/
+}
+
+func (a *EbitenAdapter) SetGameScreenSize(avail imgui.Vec2) {
+	a.Game().
 }
