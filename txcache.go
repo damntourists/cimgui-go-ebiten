@@ -31,7 +31,7 @@ func (c *textureCache) NextId() int {
 
 func (c *textureCache) getFontAtlas() *ebiten.Image {
 	if c.fontAtlasImage == nil {
-		pixels, width, height, _ := imgui.CurrentIO().Fonts().GetTextureDataAsRGBA32() // call this to force imgui to build the font atlas cache
+		pixels, width, height, _ := imgui.CurrentIO().Fonts().GetTextureDataAsRGBA32()
 		c.fontAtlasImage = getTexture(pixels, width, height)
 		c.SetTexture(c.fontAtlasID, c.fontAtlasImage)
 		imgui.CurrentIO().Fonts().SetTexID(c.fontAtlasID)

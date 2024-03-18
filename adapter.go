@@ -71,11 +71,6 @@ func sendInput(io *imgui.IO, inputChars []rune) []rune {
 
 // Adapter should proxy calls to backend.
 type Adapter interface {
-	SetAfterCreateContextHook(func())   //noop
-	SetBeforeDestroyContextHook(func()) //noop
-	SetBeforeRenderHook(func())         //noop
-	SetAfterRenderHook(func())          //noop
-
 	SetBgColor(color imgui.Vec4)
 	Run(func())
 	Refresh()
@@ -96,7 +91,6 @@ type Adapter interface {
 
 	Backend() *imgui.Backend[EbitenWindowFlags]
 	SetGame(ebiten.Game)
-	SetUILoop(func())
 	Game() ebiten.Game
 	Update(float32)
 	finalize()
@@ -104,7 +98,7 @@ type Adapter interface {
 
 type EbitenAdapter struct {
 	backend imgui.Backend[EbitenWindowFlags]
-	game    ebiten.Game
+	game    *GameProxy
 	loop    func()
 
 	ClipMask   bool
@@ -205,34 +199,34 @@ func (a *EbitenAdapter) finalize() {
 }
 
 func (a *EbitenAdapter) SetGame(g ebiten.Game) {
+	// init a 1px
+	gameScreen := ebiten.NewImage(1, 1)
 
-	gameScreen := ebiten.NewImage(16, 16)
-
+	// Cache gamescreen texture
 	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
 	Cache.SetTexture(tid, gameScreen)
 
+	// Create game wrapper
 	a.game = &GameProxy{
 		game:                g,
 		filter:              ebiten.FilterNearest,
 		gameScreen:          gameScreen,
 		gameScreenTextureID: tid,
+
+		// Init at 1px so ebiten doesn't panic.
+		width:        1,
+		height:       1,
+		screenHeight: 1,
+		screenWidth:  1,
 	}
 }
 
 func (a *EbitenAdapter) ScreenTextureID() imgui.TextureID {
-	return a.ScreenTextureID()
+	return a.game.ScreenTextureID()
 }
 
 func (a *EbitenAdapter) Game() ebiten.Game {
 	return a.game
-}
-
-func (a *EbitenAdapter) SetUILoop(f func()) {
-	a.loop = f
-}
-
-func (a *EbitenAdapter) UILoop() func() {
-	return a.loop
 }
 
 func (a *EbitenAdapter) Update(delta float32) {
@@ -254,11 +248,8 @@ func (a *EbitenAdapter) Run(f func()) {
 	a.backend.Run(f)
 }
 
-func (a *EbitenAdapter) SetAfterCreateContextHook(hook func()) {
-	a.backend.SetAfterCreateContextHook(hook)
-}
-
 func (a *EbitenAdapter) setKeyMapping() {
+	// TODO
 	// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
 	/*
 		io := cimgui.GetIO()
@@ -269,5 +260,5 @@ func (a *EbitenAdapter) setKeyMapping() {
 }
 
 func (a *EbitenAdapter) SetGameScreenSize(avail imgui.Vec2) {
-	a.Game().
+	a.game.SetGameScreenSize(avail)
 }

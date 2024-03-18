@@ -20,28 +20,31 @@ type GameProxy struct {
 	filter ebiten.Filter
 }
 
+// Update - Update UI and game in tandem. Handle inputs
 func (g *GameProxy) Update() error {
 	if g.game == nil {
 		panic("No game to update!")
 	}
 
 	io := imgui.CurrentIO()
-	io.SetDeltaTime(1.0 / 60.0)
 
-	xoff, yoff := ebiten.Wheel()
-
-	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
-
+	// Sync keyboard
 	currentAdapter.inputChars = sendInput(imgui.CurrentIO(), currentAdapter.inputChars)
 
-	imgui.NewFrame()
+	// Sync mouse wheel
+	xoff, yoff := ebiten.Wheel()
+	io.AddMouseWheelDelta(float32(xoff), float32(yoff))
 
+	// Sync mouse position
 	cx, cy := ebiten.CursorPosition()
 	io.SetMousePos(imgui.Vec2{X: float32(cx), Y: float32(cy)})
+
+	// Sync mouse button
 	io.SetMouseButtonDown(0, ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft))
 	io.SetMouseButtonDown(1, ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight))
 	io.SetMouseButtonDown(2, ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle))
 
+	// Sync mouse cursor
 	switch imgui.CurrentMouseCursor() {
 	case imgui.MouseCursorNone:
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
@@ -61,33 +64,45 @@ func (g *GameProxy) Update() error {
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 	}
 
+	//imgui.EndFrame()
+
+	io.SetDeltaTime(1.0 / 60.0)
+
+	imgui.NewFrame()
+	err := g.game.Update()
 	imgui.EndFrame()
 
-	err := g.game.Update()
 	return err
 }
 
-func (g *GameProxy) Draw(screen *ebiten.Image) {
+func (g *GameProxy) renderable() bool {
+	if g.width > 0 && g.height > 0 && g.screenWidth > 0 && g.screenHeight > 0 {
+		return true
+	}
+	return false
+}
 
-	if g.gameScreen == nil {
-		g.gameScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+func (g *GameProxy) Draw(screen *ebiten.Image) {
+	// screen will be the destination where the ui is drawn.
+	// g.gameScreen is where the game is drawn.
+	if g.gameScreen == nil && g.renderable() {
+		g.gameScreen = ebiten.NewImage(int(g.width), int(g.height))
 		Cache.SetTexture(g.gameScreenTextureID, g.gameScreen)
 	}
-
-	//currentTexture := Cache.GetTexture(g.gameScreenTextureID)
 
 	// Check that old frame matches new size. If not, delete old texture and create a new one.
-	if g.gameScreen.Bounds().Size().X != g.screenWidth ||
-		g.gameScreen.Bounds().Size().Y != g.screenHeight {
+	if g.gameScreen.Bounds().Size().X != int(g.width) ||
+		g.gameScreen.Bounds().Size().Y != int(g.height) && g.renderable() {
 		Cache.RemoveTexture(g.gameScreenTextureID)
 
-		g.gameScreen = ebiten.NewImage(g.screenWidth, g.screenHeight)
+		g.gameScreen = ebiten.NewImage(int(g.width), int(g.height))
 		Cache.SetTexture(g.gameScreenTextureID, g.gameScreen)
 	}
 
-	g.game.Draw(g.gameScreen)
-
-	ebitenutil.DebugPrint(g.gameScreen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+	if g.renderable() {
+		g.game.Draw(g.gameScreen)
+		ebitenutil.DebugPrint(g.gameScreen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+	}
 
 	imgui.Render()
 
@@ -110,7 +125,7 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 
 }
 
-func (g *GameProxy) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+func (g *GameProxy) Layout(outsideWidth, outsideHeight int) (int, int) {
 	width := float64(outsideWidth) * ebiten.DeviceScaleFactor()
 	height := float64(outsideHeight) * ebiten.DeviceScaleFactor()
 
@@ -129,6 +144,6 @@ func (g *GameProxy) ScreenTextureID() imgui.TextureID {
 }
 
 func (g *GameProxy) SetGameScreenSize(v imgui.Vec2) {
-	g.screenHeight = int(v.Y)
-	g.screenWidth = int(v.X)
+	g.height = float64(max(1, v.Y))
+	g.width = float64(max(1, v.X))
 }

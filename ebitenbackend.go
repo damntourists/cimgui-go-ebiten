@@ -41,12 +41,6 @@ var _ imgui.Backend[EbitenWindowFlags] = &BackendBridge{}
 
 type (
 	BackendBridge struct {
-		hookAfterCreateContext   func()
-		hookBeforeDestroyContext func()
-		hookLoop                 func()
-		hookBeforeRender         func()
-		hookAfterRender          func()
-
 		dropCBFn        imgui.DropCallback
 		closeCBFn       imgui.WindowCloseCallback[EbitenWindowFlags]
 		keyCBFn         imgui.KeyCallback
@@ -96,20 +90,20 @@ func (b *BackendBridge) SetWindowFlags(flag EbitenWindowFlags, value int) {
 
 }
 
-func (b *BackendBridge) SetAfterCreateContextHook(f func()) {
-	b.hookAfterCreateContext = f
+func (b *BackendBridge) SetAfterCreateContextHook(_ func()) {
+	// noop
 }
 
-func (b *BackendBridge) SetBeforeDestroyContextHook(f func()) {
-	b.hookBeforeDestroyContext = f
+func (b *BackendBridge) SetBeforeDestroyContextHook(_ func()) {
+	// noop
 }
 
-func (b *BackendBridge) SetBeforeRenderHook(f func()) {
-	b.hookBeforeRender = f
+func (b *BackendBridge) SetBeforeRenderHook(_ func()) {
+	// noop
 }
 
-func (b *BackendBridge) SetAfterRenderHook(f func()) {
-	b.hookAfterRender = f
+func (b *BackendBridge) SetAfterRenderHook(_ func()) {
+	// noop
 }
 
 func (b *BackendBridge) SetKeyCallback(callback imgui.KeyCallback) {
@@ -154,16 +148,12 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 
 }
 
-func (b *BackendBridge) SetLoop(update func()) {
-	b.hookLoop = update
-}
-
 func (b *BackendBridge) Run(f func()) {
 	f()
 }
 
 func (b *BackendBridge) Refresh() {
-
+	println("backend bridge refreshing!")
 }
 
 func (b *BackendBridge) SetWindowPos(x, y int) {
@@ -172,6 +162,7 @@ func (b *BackendBridge) SetWindowPos(x, y int) {
 
 func (b *BackendBridge) GetWindowPos() (x, y int32) {
 	xx, yy := ebiten.WindowPosition()
+
 	return int32(xx), int32(yy)
 }
 
