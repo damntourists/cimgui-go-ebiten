@@ -64,8 +64,6 @@ func (g *GameProxy) Update() error {
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 	}
 
-	//imgui.EndFrame()
-
 	io.SetDeltaTime(1.0 / 60.0)
 
 	imgui.NewFrame()
