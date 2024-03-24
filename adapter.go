@@ -12,72 +12,63 @@ var currentAdapter *EbitenAdapter
 
 var keys = map[imgui.Key]int{
 	/*
-			imgui.KeyNone :
+		imgui.KeyNone :
 		imgui.Key_BEGIN
-		imgui.KeyTab        :
-		imgui.KeyLeftArrow  :
-		imgui.KeyRightArrow :
-		imgui.KeyUpArrow    :
-		imgui.KeyDownArrow  :
-		imgui.KeyPageUp     :
-		imgui.KeyPageDown   :
-		imgui.KeyHome       :
-		imgui.KeyEnd        :
-		imgui.KeyInsert     :
-		imgui.KeyDelete     :
-		imgui.KeyBackspace  :
-		imgui.KeySpace      :
-		imgui.KeyEnter      :
-		imgui.KeyEscape     :
-		imgui.KeyLeftCtrl   :
-		imgui.KeyLeftShift  :
-		imgui.KeyLeftAlt    :
-		imgui.KeyLeftSuper  :
-		imgui.KeyRightCtrl  :
-		imgui.KeyRightShift :
-		imgui.KeyRightAlt   :
-		imgui.KeyRightSuper :
-		imgui.KeyMenu       :
-
-
-
-		int(KeyAltLeft),
-		int(KeyAltRight),
-
-		int(KeyArrowDown),
-		int(KeyArrowLeft),
-		int(KeyArrowRight),
-		int(KeyArrowUp),
-
-		int(KeyBackquote),
-		int(KeyBackslash),
-		int(KeyBackspace),
-
-		int(KeyBracketLeft),
-		int(KeyBracketRight),
-
-		int(KeyCapsLock),
-		int(KeyComma),
-		int(KeyContextMenu),
-		int(KeyControlLeft),
-		int(KeyControlRight),
-
 	*/
-	imgui.KeyTab:        int(ebiten.KeyTab),
-	imgui.KeyLeftArrow:  int(ebiten.KeyLeft),
-	imgui.KeyRightArrow: int(ebiten.KeyRight),
-	imgui.KeyUpArrow:    int(ebiten.KeyUp),
-	imgui.KeyDownArrow:  int(ebiten.KeyDown),
-	imgui.KeyPageUp:     int(ebiten.KeyPageUp),
-	imgui.KeyPageDown:   int(ebiten.KeyPageDown),
-	imgui.KeyHome:       int(ebiten.KeyHome),
-	imgui.KeyEnd:        int(ebiten.KeyEnd),
-	imgui.KeyInsert:     int(ebiten.KeyInsert),
-	imgui.KeyDelete:     int(ebiten.KeyDelete),
-	imgui.KeyBackspace:  int(ebiten.KeyBackspace),
-	imgui.KeySpace:      int(ebiten.KeySpace),
-	imgui.KeyEnter:      int(ebiten.KeyEnter),
-	imgui.KeyEscape:     int(ebiten.KeyEscape),
+	imgui.KeyTab: int(ebiten.KeyTab),
+
+	// Misc
+	imgui.KeyCapsLock: int(ebiten.KeyCapsLock),
+	imgui.KeyComma:    int(ebiten.KeyComma),
+	imgui.KeyMenu:     int(ebiten.KeyContextMenu),
+
+	// Arrows
+	imgui.KeyLeftArrow:  int(ebiten.KeyArrowLeft),
+	imgui.KeyRightArrow: int(ebiten.KeyArrowRight),
+	imgui.KeyUpArrow:    int(ebiten.KeyArrowUp),
+	imgui.KeyDownArrow:  int(ebiten.KeyArrowDown),
+
+	//imgui.Keyint(KeyBackquote),
+	imgui.KeyBackslash: int(ebiten.KeyBackslash),
+	imgui.KeyBackspace: int(ebiten.KeyBackspace),
+
+	// CTRL
+	imgui.KeyLeftCtrl:  int(ebiten.KeyControlLeft),
+	imgui.KeyRightCtrl: int(ebiten.KeyControlRight),
+
+	// ALT
+	imgui.KeyLeftAlt:  int(ebiten.KeyAltLeft),
+	imgui.KeyRightAlt: int(ebiten.KeyAltRight),
+
+	// Shift
+	imgui.KeyLeftShift:  int(ebiten.KeyShiftLeft),
+	imgui.KeyRightShift: int(ebiten.KeyShiftRight),
+
+	// Super/Meta
+	imgui.KeyLeftSuper:  int(ebiten.KeyMetaLeft),
+	imgui.KeyRightSuper: int(ebiten.KeyMetaRight),
+
+	/*
+		imgui.KeyMenu       :
+	*/
+
+	imgui.KeyLeftBracket:  int(ebiten.KeyBracketLeft),
+	imgui.KeyRightBracket: int(ebiten.KeyBracketRight),
+
+	imgui.KeyPageUp:   int(ebiten.KeyPageUp),
+	imgui.KeyPageDown: int(ebiten.KeyPageDown),
+
+	imgui.KeyEnd:    int(ebiten.KeyEnd),
+	imgui.KeyHome:   int(ebiten.KeyHome),
+	imgui.KeyInsert: int(ebiten.KeyInsert),
+	imgui.KeyDelete: int(ebiten.KeyDelete),
+
+	imgui.KeySpace: int(ebiten.KeySpace),
+	imgui.KeyEnter: int(ebiten.KeyEnter),
+
+	imgui.KeyEscape: int(ebiten.KeyEscape),
+
+	imgui.KeyEqual: int(ebiten.KeyEqual),
 
 	imgui.Key0:       int(ebiten.KeyDigit0),
 	imgui.Key1:       int(ebiten.KeyDigit1),
@@ -125,258 +116,146 @@ var keys = map[imgui.Key]int{
 	imgui.KeyKeypad7: int(ebiten.KeyNumpad7),
 	imgui.KeyKeypad8: int(ebiten.KeyNumpad8),
 	imgui.KeyKeypad9: int(ebiten.KeyNumpad9),
-	/*
+	imgui.KeyF1:      int(ebiten.KeyF1),
+	imgui.KeyF2:      int(ebiten.KeyF2),
+	imgui.KeyF3:      int(ebiten.KeyF3),
+	imgui.KeyF4:      int(ebiten.KeyF4),
+	imgui.KeyF5:      int(ebiten.KeyF5),
+	imgui.KeyF6:      int(ebiten.KeyF6),
+	imgui.KeyF7:      int(ebiten.KeyF7),
+	imgui.KeyF8:      int(ebiten.KeyF8),
+	imgui.KeyF9:      int(ebiten.KeyF9),
+	imgui.KeyF10:     int(ebiten.KeyF10),
+	imgui.KeyF11:     int(ebiten.KeyF11),
+	imgui.KeyF12:     int(ebiten.KeyF12),
 
-		int(KeyF1),
-		int(KeyF2),
-		int(KeyF3),
-		int(KeyF4),
-		int(KeyF5),
-		int(KeyF6),
-		int(KeyF7),
-		int(KeyF8),
-		int(KeyF9),
-		int(KeyF10),
-		int(KeyF11),
-		int(KeyF12),
+	imgui.KeyApostrophe:  int(ebiten.KeyApostrophe),
+	imgui.KeyMinus:       int(ebiten.KeyMinus),
+	imgui.KeyPeriod:      int(ebiten.KeyPeriod),
+	imgui.KeySlash:       int(ebiten.KeySlash),
+	imgui.KeySemicolon:   int(ebiten.KeySemicolon),
+	imgui.KeyGraveAccent: int(ebiten.KeyGraveAccent),
+	imgui.KeyScrollLock:  int(ebiten.KeyScrollLock),
+	imgui.KeyNumLock:     int(ebiten.KeyNumLock),
+	imgui.KeyPrintScreen: int(ebiten.KeyPrintScreen),
+	imgui.KeyPause:       int(ebiten.KeyPause),
 
-	*/
-	imgui.KeyF1:  nil,
-	imgui.KeyF2:  nil,
-	imgui.KeyF3:  nil,
-	imgui.KeyF4:  nil,
-	imgui.KeyF5:  nil,
-	imgui.KeyF6:  nil,
-	imgui.KeyF7:  nil,
-	imgui.KeyF8:  nil,
-	imgui.KeyF9:  nil,
-	imgui.KeyF10: nil,
-	imgui.KeyF11: nil,
-	imgui.KeyF12: nil,
-	imgui.KeyF13: nil,
-	imgui.KeyF14: nil,
-	imgui.KeyF15: nil,
-	imgui.KeyF16: nil,
-	imgui.KeyF17: nil,
-	imgui.KeyF18: nil,
-	imgui.KeyF19: nil,
-	imgui.KeyF20: nil,
-	imgui.KeyF21: nil,
-	imgui.KeyF22: nil,
-	imgui.KeyF23: nil,
-	imgui.KeyF24: nil,
+	imgui.KeyKeypadDecimal:  int(ebiten.KeyKPDecimal),
+	imgui.KeyKeypadDivide:   int(ebiten.KeyKPDivide),
+	imgui.KeyKeypadMultiply: int(ebiten.KeyKPMultiply),
+	imgui.KeyKeypadSubtract: int(ebiten.KeyKPSubtract),
+	imgui.KeyKeypadAdd:      int(ebiten.KeyKPAdd),
+	imgui.KeyKeypadEnter:    int(ebiten.KeyKPEnter),
+	imgui.KeyKeypadEqual:    int(ebiten.KeyKPEqual),
+
+	//imgui.Key
 
 	/*
-
-					   EBITEN:
-						int(KeyDelete),
-						int(KeyEnd),
-						int(KeyEnter),
-						int(KeyEqual),
-						int(KeyEscape),
-
-		nil,
-		nil,
-
-
-
-				imgui.KeyApostrophe :
-				imgui.KeyComma :
-				imgui.KeyMinus :
-				imgui.KeyPeriod :
-				imgui.KeySlash :
-				imgui.KeySemicolon :
-				imgui.KeyEqual :
-				imgui.KeyLeftBracket :
-				imgui.KeyBackslash :
-				imgui.KeyRightBracket :
-				imgui.KeyGraveAccent    :
-				imgui.KeyCapsLock       :
-				imgui.KeyScrollLock     :
-				imgui.KeyNumLock        :
-				imgui.KeyPrintScreen    :
-				imgui.KeyPause          :
+	   int(KeyQuote),
+	   				int(KeyScrollLock),
+	   				int(KeySemicolon),
+	   				int(KeyShiftLeft),
+	   				int(KeyShiftRight),
+	   				int(KeySlash),
+	   				int(KeySpace),
+	   				int(KeyTab),
+	   				int(KeyAlt),
+	   				int(KeyControl),
+	   				int(KeyShift),
+	   				int(KeyMeta),
+	   				int(KeyMax
 
 
-
-						int(KeyHome),
-						int(KeyInsert),
-						int(KeyMetaLeft),
-						int(KeyMetaRight),
-						int(KeyMinus),
-						int(KeyNumLock),
-
-
-
-
-				imgui.KeypadDecimal  :
-				imgui.KeypadDivide   :
-				imgui.KeypadMultiply :
-				imgui.KeypadSubtract :
-				imgui.KeypadAdd      :
-				imgui.KeypadEnter    :
-				imgui.KeypadEqual    :
-
-
-						int(KeyNumpadAdd),
-						int(KeyNumpadDecimal),
-						int(KeyNumpadDivide),
-						int(KeyNumpadEnter),
-						int(KeyNumpadEqual),
-						int(KeyNumpadMultiply),
-						int(KeyNumpadSubtract),
-						int(KeyPageDown),
-						int(KeyPageUp),
-						int(KeyPause),
-						int(KeyPeriod),
-						int(KeyPrintScreen),
-						int(KeyQuote),
-						int(KeyScrollLock),
-						int(KeySemicolon),
-						int(KeyShiftLeft),
-						int(KeyShiftRight),
-						int(KeySlash),
-						int(KeySpace),
-						int(KeyTab),
-						int(KeyAlt),
-						int(KeyControl),
-						int(KeyShift),
-						int(KeyMeta),
-						int(KeyMax
-
-					// Keys for backward compatibility.
-					// Deprecated: as of v2.1.
-						int(Key0),
-						int(Key1),
-						int(Key2),
-						int(Key3),
-						int(Key4),
-						int(Key5),
-						int(Key6),
-						int(Key7),
-						int(Key8),
-						int(Key9),
-						int(KeyApostrophe),
-						int(KeyDown),
-						int(KeyGraveAccent),
-						int(KeyKP0),
-						int(KeyKP1),
-						int(KeyKP2),
-						int(KeyKP3),
-						int(KeyKP4),
-						int(KeyKP5),
-						int(KeyKP6),
-						int(KeyKP7),
-						int(KeyKP8),
-						int(KeyKP9),
-						int(KeyKPAdd),
-						int(KeyKPDecimal),
-						int(KeyKPDivide),
-						int(KeyKPEnter),
-						int(KeyKPEqual),
-						int(KeyKPMultiply),
-						int(KeyKPSubtract),
-						int(KeyLeft),
-						int(KeyLeftBracket),
-						int(KeyMenu),
-						int(KeyRight),
-						int(KeyRightBracket),
-						int(KeyUp),
+	   					   IMGUI
+	   		imgui.Keyboard/mouses. Often referred as "Browser Back"
+	   		imgui.KeyAppBack    :
+	   		imgui.KeyAppForward :
+	   					   		// Menu (Xbox)      + (Switch)   Start/Options (PS)
+	   		imgui.KeyGamepadStart :
+	   					   		// View (Xbox)      - (Switch)   Share (PS)
+	   		imgui.KeyGamepadBack :
+	   					   		// X (Xbox)         Y (Switch)   Square (PS)        // Tap: Toggle Menu. Hold: Windowing mode (Focus/Move/Resize windows)
+	   		imgui.KeyGamepadFaceLeft :
+	   					   		// B (Xbox)         A (Switch)   Circle (PS)        // Cancel / Close / Exit
+	   		imgui.KeyGamepadFaceRight :
+	   		imgui.Keyboard
+	   		imgui.KeyGamepadFaceUp :
+	   					   		// A (Xbox)         B (Switch)   Cross (PS)         // Activate / Open / Toggle / Tweak
+	   		imgui.KeyGamepadFaceDown :
+	   					   		// D-pad Left                                       // Move / Tweak / Resize Window (in Windowing mode)
+	   		imgui.KeyGamepadDpadLeft :
+	   					   		// D-pad Right                                      // Move / Tweak / Resize Window (in Windowing mode)
+	   		imgui.KeyGamepadDpadRight :
+	   					   		// D-pad Up                                         // Move / Tweak / Resize Window (in Windowing mode)
+	   		imgui.KeyGamepadDpadUp :
+	   					   		// D-pad Down                                       // Move / Tweak / Resize Window (in Windowing mode)
+	   		imgui.KeyGamepadDpadDown :
+	   					   		// L Bumper (Xbox)  L (Switch)   L1 (PS)            // Tweak Slower / Focus Previous (in Windowing mode)
+	   		imgui.KeyGamepadL1 :
+	   					   		// R Bumper (Xbox)  R (Switch)   R1 (PS)            // Tweak Faster / Focus Next (in Windowing mode)
+	   		imgui.KeyGamepadR1 :
+	   					   		// L Trig. (Xbox)   ZL (Switch)  L2 (PS) [Analog]
+	   		imgui.KeyGamepadL2 :
+	   					   		// R Trig. (Xbox)   ZR (Switch)  R2 (PS) [Analog]
+	   		imgui.KeyGamepadR2 :
+	   					   		// L Stick (Xbox)   L3 (Switch)  L3 (PS)
+	   		imgui.KeyGamepadL3 :
+	   					   		// R Stick (Xbox)   R3 (Switch)  R3 (PS)
+	   		imgui.KeyGamepadR3 :
+	   					   		// [Analog]                                         // Move Window (in Windowing mode)
+	   		imgui.KeyGamepadLStickLeft :
+	   					   		// [Analog]                                         // Move Window (in Windowing mode)
+	   		imgui.KeyGamepadLStickRight :
+	   					   		// [Analog]                                         // Move Window (in Windowing mode)
+	   		imgui.KeyGamepadLStickUp :
+	   					   		// [Analog]                                         // Move Window (in Windowing mode)
+	   		imgui.KeyGamepadLStickDown :
+	   					   		// [Analog]
+	   		imgui.KeyGamepadRStickLeft :
+	   					   		// [Analog]
+	   		imgui.KeyGamepadRStickRight :
+	   					   		// [Analog]
+	   		imgui.KeyGamepadRStickUp :
+	   					   		// [Analog]
+	   		imgui.KeyGamepadRStickDown   :
+	   		imgui.KeyMouseLeft           :
+	   		imgui.KeyMouseRight          :
+	   		imgui.KeyMouseMiddle         :
+	   		imgui.KeyMouseX1             :
+	   		imgui.KeyMouseX2             :
+	   		imgui.KeyMouseWheelX         :
+	   		imgui.KeyMouseWheelY         :
+	   		imgui.KeyReservedForModCtrl  :
+	   		imgui.KeyReservedForModShift :
+	   		imgui.KeyReservedForModAlt   :
+	   		imgui.KeyReservedForModSuper :
+	   		imgui.KeyCOUNT               :
+	   		imgui.KeyBEGIN :
+	   		imgui.KeyEND   :
+	   		imgui.KeyCOUNT :
+	   		imgui.Keys
+	   		imgui.KeysDataSIZE :
+	   		imgui.KeysData_OFFSET) index.
+	   		imgui.KeysDataOFFSET :
+	   					   	)
 
 
 
 
 
-							   IMGUI
-				imgui.Keyboard/mouses. Often referred as "Browser Back"
-				imgui.KeyAppBack    :
-				imgui.KeyAppForward :
-							   		// Menu (Xbox)      + (Switch)   Start/Options (PS)
-				imgui.KeyGamepadStart :
-							   		// View (Xbox)      - (Switch)   Share (PS)
-				imgui.KeyGamepadBack :
-							   		// X (Xbox)         Y (Switch)   Square (PS)        // Tap: Toggle Menu. Hold: Windowing mode (Focus/Move/Resize windows)
-				imgui.KeyGamepadFaceLeft :
-							   		// B (Xbox)         A (Switch)   Circle (PS)        // Cancel / Close / Exit
-				imgui.KeyGamepadFaceRight :
-				imgui.Keyboard
-				imgui.KeyGamepadFaceUp :
-							   		// A (Xbox)         B (Switch)   Cross (PS)         // Activate / Open / Toggle / Tweak
-				imgui.KeyGamepadFaceDown :
-							   		// D-pad Left                                       // Move / Tweak / Resize Window (in Windowing mode)
-				imgui.KeyGamepadDpadLeft :
-							   		// D-pad Right                                      // Move / Tweak / Resize Window (in Windowing mode)
-				imgui.KeyGamepadDpadRight :
-							   		// D-pad Up                                         // Move / Tweak / Resize Window (in Windowing mode)
-				imgui.KeyGamepadDpadUp :
-							   		// D-pad Down                                       // Move / Tweak / Resize Window (in Windowing mode)
-				imgui.KeyGamepadDpadDown :
-							   		// L Bumper (Xbox)  L (Switch)   L1 (PS)            // Tweak Slower / Focus Previous (in Windowing mode)
-				imgui.KeyGamepadL1 :
-							   		// R Bumper (Xbox)  R (Switch)   R1 (PS)            // Tweak Faster / Focus Next (in Windowing mode)
-				imgui.KeyGamepadR1 :
-							   		// L Trig. (Xbox)   ZL (Switch)  L2 (PS) [Analog]
-				imgui.KeyGamepadL2 :
-							   		// R Trig. (Xbox)   ZR (Switch)  R2 (PS) [Analog]
-				imgui.KeyGamepadR2 :
-							   		// L Stick (Xbox)   L3 (Switch)  L3 (PS)
-				imgui.KeyGamepadL3 :
-							   		// R Stick (Xbox)   R3 (Switch)  R3 (PS)
-				imgui.KeyGamepadR3 :
-							   		// [Analog]                                         // Move Window (in Windowing mode)
-				imgui.KeyGamepadLStickLeft :
-							   		// [Analog]                                         // Move Window (in Windowing mode)
-				imgui.KeyGamepadLStickRight :
-							   		// [Analog]                                         // Move Window (in Windowing mode)
-				imgui.KeyGamepadLStickUp :
-							   		// [Analog]                                         // Move Window (in Windowing mode)
-				imgui.KeyGamepadLStickDown :
-							   		// [Analog]
-				imgui.KeyGamepadRStickLeft :
-							   		// [Analog]
-				imgui.KeyGamepadRStickRight :
-							   		// [Analog]
-				imgui.KeyGamepadRStickUp :
-							   		// [Analog]
-				imgui.KeyGamepadRStickDown   :
-				imgui.KeyMouseLeft           :
-				imgui.KeyMouseRight          :
-				imgui.KeyMouseMiddle         :
-				imgui.KeyMouseX1             :
-				imgui.KeyMouseX2             :
-				imgui.KeyMouseWheelX         :
-				imgui.KeyMouseWheelY         :
-				imgui.KeyReservedForModCtrl  :
-				imgui.KeyReservedForModShift :
-				imgui.KeyReservedForModAlt   :
-				imgui.KeyReservedForModSuper :
-				imgui.KeyCOUNT               :
-				imgui.KeyBEGIN :
-				imgui.KeyEND   :
-				imgui.KeyCOUNT :
-				imgui.Keys
-				imgui.KeysDataSIZE :
-				imgui.KeysData_OFFSET) index.
-				imgui.KeysDataOFFSET :
-							   	)
-
-
-
-
-
-								   		ModNone                ),
-								   		// Ctrl
-								   		ModCtrl ),
-								   		// Shift
-								   		ModShift ),
-								   		// Option/Menu
-								   		ModAlt ),
-								   		// Cmd/Super/Windows
-								   		ModSuper ),
-								   		// Alias for Ctrl (non-macOS) _or_ Super (macOS).
-								   		ModShortcut ),
-								   		// 5-bits
-								   		ModMask          ),
+	   						   		ModNone                ),
+	   						   		// Ctrl
+	   						   		ModCtrl ),
+	   						   		// Shift
+	   						   		ModShift ),
+	   						   		// Option/Menu
+	   						   		ModAlt ),
+	   						   		// Cmd/Super/Windows
+	   						   		ModSuper ),
+	   						   		// Alias for Ctrl (non-macOS) _or_ Super (macOS).
+	   						   		ModShortcut ),
+	   						   		// 5-bits
+	   						   		ModMask          ),
 
 	*/
 
