@@ -18,6 +18,13 @@ type GameProxy struct {
 	gameScreen          *ebiten.Image
 
 	filter ebiten.Filter
+
+	clipRegion imgui.Vec2
+
+	Zoom       float32
+	ZoomFactor float32
+
+	Resizeable bool
 }
 
 // Update - Update UI and game in tandem. Handle inputs
@@ -65,10 +72,7 @@ func (g *GameProxy) Update() error {
 	}
 
 	io.SetDeltaTime(1.0 / 60.0)
-
-	imgui.NewFrame()
 	err := g.game.Update()
-	imgui.EndFrame()
 
 	return err
 }

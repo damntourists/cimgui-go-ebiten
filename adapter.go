@@ -296,10 +296,13 @@ func (a *EbitenAdapter) SetGame(g ebiten.Game) {
 		gameScreenTextureID: tid,
 
 		// Init at 1px so ebiten doesn't panic.
-		width:        1,
-		height:       1,
+		width:  1,
+		height: 1,
+
 		screenHeight: 1,
 		screenWidth:  1,
+
+		clipRegion: imgui.Vec2{X: 1, Y: 1},
 	}
 }
 
@@ -336,4 +339,8 @@ func (a *EbitenAdapter) setKeyMapping() {
 
 func (a *EbitenAdapter) SetGameScreenSize(avail imgui.Vec2) {
 	a.game.SetGameScreenSize(avail)
+}
+
+func (a *EbitenAdapter) SetClippingRegion(avail imgui.Vec2) {
+
 }
