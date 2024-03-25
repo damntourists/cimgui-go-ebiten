@@ -29,7 +29,7 @@ func (g *GameProxy) Update() error {
 	io := imgui.CurrentIO()
 
 	// Sync keyboard
-	currentAdapter.inputChars = sendInput(imgui.CurrentIO(), currentAdapter.inputChars)
+	CurrentAdapter.inputChars = sendInput(imgui.CurrentIO(), CurrentAdapter.inputChars)
 
 	// Sync mouse wheel
 	xoff, yoff := ebiten.Wheel()
@@ -104,19 +104,19 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 
 	imgui.Render()
 
-	if currentAdapter.ClipMask {
-		if currentAdapter.lmask == nil {
+	if CurrentAdapter.ClipMask {
+		if CurrentAdapter.lmask == nil {
 			w, h := screen.Size()
-			currentAdapter.lmask = ebiten.NewImage(w, h)
+			CurrentAdapter.lmask = ebiten.NewImage(w, h)
 		} else {
 			w1, h1 := screen.Size()
-			w2, h2 := currentAdapter.lmask.Size()
+			w2, h2 := CurrentAdapter.lmask.Size()
 			if w1 != w2 || h1 != h2 {
-				currentAdapter.lmask.Dispose()
-				currentAdapter.lmask = ebiten.NewImage(w1, h1)
+				CurrentAdapter.lmask.Dispose()
+				CurrentAdapter.lmask = ebiten.NewImage(w1, h1)
 			}
 		}
-		RenderMasked(screen, currentAdapter.lmask, imgui.CurrentDrawData(), Cache, g.filter)
+		RenderMasked(screen, CurrentAdapter.lmask, imgui.CurrentDrawData(), Cache, g.filter)
 	} else {
 		Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
 	}

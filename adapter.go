@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-var currentAdapter *EbitenAdapter
+var CurrentAdapter *EbitenAdapter
 
 var keys = map[imgui.Key]int{
 	imgui.KeyTab:            int(ebiten.KeyTab),
@@ -136,7 +136,6 @@ func sendInput(io *imgui.IO, inputChars []rune) []rune {
 	} else {
 		io.SetKeyCtrl(false)
 	}
-	// TODO: get KeySuper somehow (GLFW: KeyLeftSuper    = Key(343), R: 347)
 	inputChars = ebiten.AppendInputChars(inputChars)
 	if len(inputChars) > 0 {
 		io.AddInputCharactersUTF8(string(inputChars))
@@ -176,7 +175,6 @@ type Adapter interface {
 	Backend() *imgui.Backend[EbitenWindowFlags]
 	SetGame(ebiten.Game)
 	Game() ebiten.Game
-	//Update(float32)
 	finalize()
 }
 
@@ -273,7 +271,7 @@ func NewEbitenAdapter() *EbitenAdapter {
 
 	runtime.SetFinalizer(&a, (*EbitenAdapter).finalize)
 
-	currentAdapter = &a
+	CurrentAdapter = &a
 
 	return &a
 }
