@@ -1,7 +1,7 @@
 package ebitenbackend
 
 import (
-	imgui "github.com/damntourists/cimgui-go-lite"
+	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"image"
@@ -281,19 +281,10 @@ func (a *EbitenAdapter) finalize() {
 }
 
 func (a *EbitenAdapter) SetGame(g ebiten.Game) {
-	// init a 1px
-	gameScreen := ebiten.NewImage(1, 1)
-
-	// Cache gamescreen texture
-	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
-	Cache.SetTexture(tid, gameScreen)
-
 	// Create game wrapper
 	a.game = &GameProxy{
-		game:                g,
-		filter:              ebiten.FilterNearest,
-		gameScreen:          gameScreen,
-		gameScreenTextureID: tid,
+		game:   g,
+		filter: ebiten.FilterNearest,
 
 		// Init at 1px so ebiten doesn't panic.
 		width:  1,
@@ -304,6 +295,14 @@ func (a *EbitenAdapter) SetGame(g ebiten.Game) {
 
 		clipRegion: imgui.Vec2{X: 1, Y: 1},
 	}
+}
+
+func (a *EbitenAdapter) SetGameRenderDestination(dest *ebiten.Image) {
+	// Cache gamescreen texture
+	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
+	Cache.SetTexture(tid, dest)
+	a.game.gameScreenTextureID = tid
+	a.game.gameScreen = dest
 }
 
 func (a *EbitenAdapter) ScreenTextureID() imgui.TextureID {
@@ -339,8 +338,4 @@ func (a *EbitenAdapter) setKeyMapping() {
 
 func (a *EbitenAdapter) SetGameScreenSize(avail imgui.Vec2) {
 	a.game.SetGameScreenSize(avail)
-}
-
-func (a *EbitenAdapter) SetClippingRegion(avail imgui.Vec2) {
-
 }

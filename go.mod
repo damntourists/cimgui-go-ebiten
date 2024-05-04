@@ -2,10 +2,8 @@ module github.com/damntourists/cimgui-go-ebiten
 
 go 1.22
 
-replace github.com/damntourists/cimgui-go-lite => ../cimgui-go-lite/
-
 require (
-	github.com/damntourists/cimgui-go-lite v1.1.1
+	github.com/AllenDang/cimgui-go v0.0.0-20240429075623-6996cd326381
 	github.com/hajimehoshi/ebiten/v2 v2.6.6
 )
 

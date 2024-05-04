@@ -1,5 +1,5 @@
-github.com/damntourists/cimgui-go-lite v1.1.1 h1:Ep+2qUeJ5gki7cfIpnHQj/uJZBSVYJZgLs161wob9as=
-github.com/damntourists/cimgui-go-lite v1.1.1/go.mod h1:5UXNmGrHm+z/ncmkQ1CWtcOWY2Hd7bpAfl3Peucs58o=
+github.com/AllenDang/cimgui-go v0.0.0-20240429075623-6996cd326381 h1:QzMkqFkxaNsxCYU81W6QE7vPgzq+pGiKXVvsY8KxBcU=
+github.com/AllenDang/cimgui-go v0.0.0-20240429075623-6996cd326381/go.mod h1:e6feXR4FrATVY/UrWS3si3KCJOm0wruwbxVI/B85fUM=
 github.com/ebitengine/purego v0.6.0 h1:Yo9uBc1x+ETQbfEaf6wcBsjrQfCEnh/gaGUg7lguEJY=
 github.com/ebitengine/purego v0.6.0/go.mod h1:ah1In8AOtksoNK6yk5z1HTJeUkC1Ez4Wk2idgGslMwQ=
 github.com/hajimehoshi/ebiten/v2 v2.6.6 h1:E5X87Or4VwKZIKjeC9+Vr4ComhZAz9h839myF4Q21kc=

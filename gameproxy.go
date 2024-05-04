@@ -2,7 +2,7 @@ package ebitenbackend
 
 import (
 	"fmt"
-	imgui "github.com/damntourists/cimgui-go-lite"
+	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
@@ -20,9 +20,6 @@ type GameProxy struct {
 	filter ebiten.Filter
 
 	clipRegion imgui.Vec2
-
-	Zoom       float32
-	ZoomFactor float32
 
 	Resizeable bool
 }
@@ -72,8 +69,13 @@ func (g *GameProxy) Update() error {
 	}
 
 	io.SetDeltaTime(1.0 / 60.0)
+	// Check that fonts are built.
+	if !io.Fonts().IsBuilt() {
+		_, _, _, _ = io.Fonts().GetTextureDataAsRGBA32()
+	}
+	imgui.NewFrame()
 	err := g.game.Update()
-
+	imgui.EndFrame()
 	return err
 }
 
@@ -85,25 +87,25 @@ func (g *GameProxy) renderable() bool {
 }
 
 func (g *GameProxy) Draw(screen *ebiten.Image) {
-	// screen will be the destination where the ui is drawn.
-	// g.gameScreen is where the game is drawn.
-	if g.gameScreen == nil && g.renderable() {
-		g.gameScreen = ebiten.NewImage(int(g.width), int(g.height))
-		Cache.SetTexture(g.gameScreenTextureID, g.gameScreen)
+	destination := screen
+	if g.gameScreen != nil {
+		destination = g.gameScreen
 	}
 
-	// Check that old frame matches new size. If not, delete old texture and create a new one.
-	if g.gameScreen.Bounds().Size().X != int(g.width) ||
-		g.gameScreen.Bounds().Size().Y != int(g.height) && g.renderable() {
-		Cache.RemoveTexture(g.gameScreenTextureID)
-
-		g.gameScreen = ebiten.NewImage(int(g.width), int(g.height))
-		Cache.SetTexture(g.gameScreenTextureID, g.gameScreen)
+	// Check that old frame matches new size. If not, delete old texture and create a
+	// new one. This is if the destination is resizeable.
+	if destination.Bounds().Size().X != int(g.width) ||
+		destination.Bounds().Size().Y != int(g.height) && g.renderable() {
+		if g.gameScreen != nil {
+			Cache.RemoveTexture(g.gameScreenTextureID)
+			g.gameScreen = ebiten.NewImage(int(g.width), int(g.height))
+			Cache.SetTexture(g.gameScreenTextureID, g.gameScreen)
+		}
 	}
 
 	if g.renderable() {
-		g.game.Draw(g.gameScreen)
-		ebitenutil.DebugPrint(g.gameScreen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+		g.game.Draw(destination)
+		ebitenutil.DebugPrint(destination, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 	}
 
 	imgui.Render()

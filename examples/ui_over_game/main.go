@@ -1,8 +1,8 @@
 package main
 
 import (
+	imgui "github.com/AllenDang/cimgui-go"
 	backend "github.com/damntourists/cimgui-go-ebiten"
-	imgui "github.com/damntourists/cimgui-go-lite"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
@@ -35,13 +35,10 @@ func (m MyGame) Draw(screen *ebiten.Image) {
 				float32(tileSize), c, false)
 		}
 	}
-
-	imgui.Render()
 }
 
 func (m MyGame) Update() error {
 	imgui.ShowDemoWindow()
-
 	return nil
 }
 
@@ -55,7 +52,7 @@ func main() {
 	// may, however, use the damntourists/cimgui-go-lite to bypass this requirement.
 	// Please refer to the go.mod file for more info.
 	//
-	// * exclude_cimgui_sdli
+	// * exclude_cimgui_sdl
 	// * exclude_cimgui_glfw
 	//
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
