@@ -24,6 +24,10 @@ type GameProxy struct {
 	Resizeable bool
 }
 
+func (g *GameProxy) Game() ebiten.Game {
+	return g.game
+}
+
 // Update - Update UI and game in tandem. Handle inputs
 func (g *GameProxy) Update() error {
 	if g.game == nil {
