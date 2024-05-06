@@ -133,16 +133,15 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 	imgui.PlotCreateContext()
 	imgui.ImNodesCreateContext()
 
-	ebiten.SetWindowTitle(title)
-	ebiten.SetWindowSize(
-		width*int(ebiten.DeviceScaleFactor()),
-		height*int(ebiten.DeviceScaleFactor()),
-	)
+	sf := ebiten.Monitor().DeviceScaleFactor()
+	imgui.CurrentStyle().ScaleAllSizes(float32(sf))
 
+	ebiten.SetWindowTitle(title)
+	ebiten.SetWindowSize(int(float64(width)*sf), int(float64(height)*sf))
 	b.io.SetDisplaySize(
 		imgui.Vec2{
-			X: float32(width * int(ebiten.DeviceScaleFactor())),
-			Y: float32(width * int(ebiten.DeviceScaleFactor())),
+			X: float32(float64(width) * sf),
+			Y: float32(float64(height) * sf),
 		},
 	)
 

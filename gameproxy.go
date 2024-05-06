@@ -69,10 +69,20 @@ func (g *GameProxy) Update() error {
 	}
 
 	io.SetDeltaTime(1.0 / 60.0)
-	// Check that fonts are built.
+
+	if io.Fonts().FontCount() == 0 {
+		// The font atlas is empty. Add the default font and set up
+		// scaling to match ebiten's scale factor. It's recommended to set up fonts on
+		// your own (per imgui docs) because the default font does not scale well.
+		io.SetFontGlobalScale(float32(ebiten.Monitor().DeviceScaleFactor()))
+
+		io.Fonts().AddFontDefault()
+	}
+
 	if !io.Fonts().IsBuilt() {
 		_, _, _, _ = io.Fonts().GetTextureDataAsRGBA32()
 	}
+
 	imgui.NewFrame()
 	err := g.game.Update()
 	imgui.EndFrame()

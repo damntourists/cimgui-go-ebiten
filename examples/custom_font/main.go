@@ -6,16 +6,18 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
+	"math"
 	"unsafe"
 )
 
 const (
 	fontFilename = "Sharpie_Complete/Fonts/WEB/fonts/Sharpie-Regular.ttf"
-	fontSize     = 24
 )
 
 var (
 	adapter = backend.NewEbitenAdapter()
+	// scale font size based on ebiten's scale factor
+	fontSize = float32(math.Floor(24 * ebiten.Monitor().DeviceScaleFactor()))
 )
 
 type MyGame struct{}
