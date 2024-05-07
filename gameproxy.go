@@ -1,10 +1,8 @@
 package ebitenbackend
 
 import (
-	"fmt"
 	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type GameProxy struct {
@@ -106,21 +104,8 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 		destination = g.gameScreen
 	}
 
-	// Check that old frame matches new size. If not, delete old texture and create a
-	// new one. This is if the destination is resizeable.
-	if destination.Bounds().Size().X != int(g.width) ||
-		destination.Bounds().Size().Y != int(g.height) && g.renderable() {
-		if g.gameScreen != nil {
-			Cache.RemoveTexture(g.gameScreenTextureID)
-			g.gameScreen = ebiten.NewImage(int(g.width), int(g.height))
-			Cache.SetTexture(g.gameScreenTextureID, g.gameScreen)
-		}
-	}
-
-	if g.renderable() {
-		g.game.Draw(destination)
-		ebitenutil.DebugPrint(destination, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
-	}
+	g.gameScreen.Clear()
+	g.game.Draw(destination)
 
 	imgui.Render()
 
@@ -144,13 +129,20 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 }
 
 func (g *GameProxy) Layout(outsideWidth, outsideHeight int) (int, int) {
-	width := float64(outsideWidth) * ebiten.DeviceScaleFactor()
-	height := float64(outsideHeight) * ebiten.DeviceScaleFactor()
+	// This is the full window dimensions
+	width := float64(outsideWidth)
+	height := float64(outsideHeight)
 
 	io := imgui.CurrentIO()
 	io.SetDisplaySize(imgui.Vec2{X: float32(width), Y: float32(height)})
 
+	// Set game screen height/width to match wrapped game
+	screenWidth, screenHeight := g.game.Layout(outsideWidth, outsideHeight)
+	g.screenWidth = screenWidth   //g.Screen().Bounds().Dx()
+	g.screenHeight = screenHeight //g.Screen().Bounds().Dy()
+
 	return int(width), int(height)
+	//return g.screenWidth, g.screenHeight
 }
 
 func (g *GameProxy) Screen() *ebiten.Image {
