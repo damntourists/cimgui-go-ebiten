@@ -283,16 +283,8 @@ func (a *EbitenAdapter) finalize() {
 func (a *EbitenAdapter) SetGame(g ebiten.Game) {
 	// Create game wrapper
 	a.game = &GameProxy{
-		game:   g,
-		filter: ebiten.FilterNearest,
-
-		// Init at 1px so ebiten doesn't panic.
-		//width:  1,
-		//height: 1,
-		//
-		//screenHeight: 1,
-		//screenWidth:  1,
-
+		game:       g,
+		filter:     ebiten.FilterNearest,
 		clipRegion: imgui.Vec2{X: 1, Y: 1},
 	}
 }
@@ -303,6 +295,10 @@ func (a *EbitenAdapter) SetGameRenderDestination(dest *ebiten.Image) {
 	Cache.SetTexture(tid, dest)
 	a.game.gameScreenTextureID = tid
 	a.game.gameScreen = dest
+	a.SetGameScreenSize(imgui.Vec2{
+		X: float32(dest.Bounds().Size().X),
+		Y: float32(dest.Bounds().Size().Y),
+	})
 }
 
 func (a *EbitenAdapter) ScreenTextureID() imgui.TextureID {
@@ -337,5 +333,9 @@ func (a *EbitenAdapter) setKeyMapping() {
 }
 
 func (a *EbitenAdapter) SetGameScreenSize(size imgui.Vec2) {
+	if a.game.gameScreen == nil {
+		dest := ebiten.NewImage(int(size.X), int(size.Y))
+		a.SetGameRenderDestination(dest)
+	}
 	a.game.SetGameScreenSize(size)
 }

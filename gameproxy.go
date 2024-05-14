@@ -103,8 +103,7 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 	if g.gameScreen != nil {
 		destination = g.gameScreen
 	}
-
-	g.gameScreen.Clear()
+	destination.Clear()
 	g.game.Draw(destination)
 
 	imgui.Render()
@@ -137,9 +136,9 @@ func (g *GameProxy) Layout(outsideWidth, outsideHeight int) (int, int) {
 	io.SetDisplaySize(imgui.Vec2{X: float32(width), Y: float32(height)})
 
 	// Set game screen height/width to match wrapped game
-	screenWidth, screenHeight := g.game.Layout(outsideWidth, outsideHeight)
-	g.screenWidth = screenWidth   //g.Screen().Bounds().Dx()
-	g.screenHeight = screenHeight //g.Screen().Bounds().Dy()
+	//screenWidth, screenHeight := g.game.Layout(outsideWidth, outsideHeight)
+	//g.screenWidth = screenWidth   //g.Screen().Bounds().Dx()
+	//g.screenHeight = screenHeight //g.Screen().Bounds().Dy()
 
 	return int(width), int(height)
 	//return g.screenWidth, g.screenHeight
