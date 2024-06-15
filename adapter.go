@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-var CurrentAdapter *EbitenAdapter
+var CurrentAdapter *Adapter
 
 var keys = map[imgui.Key]int{
 	imgui.KeyTab:            int(ebiten.KeyTab),
@@ -152,8 +152,8 @@ func sendInput(io *imgui.IO, inputChars []rune) []rune {
 	return inputChars
 }
 
-// Adapter should proxy calls to backend.
-type Adapter interface {
+// AdapterType should proxy calls to backend.
+type AdapterType interface {
 	SetBgColor(color imgui.Vec4)
 	Run(func())
 	Refresh()
@@ -172,14 +172,14 @@ type Adapter interface {
 	SetIcons(icons ...image.Image)
 	CreateWindow(title string, width, height int)
 
-	Backend() *imgui.Backend[EbitenWindowFlags]
+	Backend() *imgui.Backend[WindowFlags]
 	SetGame(ebiten.Game)
 	Game() ebiten.Game
 	finalize()
 }
 
-type EbitenAdapter struct {
-	backend imgui.Backend[EbitenWindowFlags]
+type Adapter struct {
+	backend imgui.Backend[WindowFlags]
 	game    *GameProxy
 	loop    func()
 
@@ -189,67 +189,67 @@ type EbitenAdapter struct {
 	inputChars []rune
 }
 
-func (a *EbitenAdapter) SetBeforeDestroyContextHook(f func()) {
+func (a *Adapter) SetBeforeDestroyContextHook(f func()) {
 	a.backend.SetBeforeDestroyContextHook(f)
 }
 
-func (a *EbitenAdapter) SetBeforeRenderHook(f func()) {
+func (a *Adapter) SetBeforeRenderHook(f func()) {
 	a.backend.SetBeforeRenderHook(f)
 }
 
-func (a *EbitenAdapter) SetAfterRenderHook(f func()) {
+func (a *Adapter) SetAfterRenderHook(f func()) {
 	a.backend.SetAfterRenderHook(f)
 }
 
-func (a *EbitenAdapter) SetBgColor(color imgui.Vec4) {
+func (a *Adapter) SetBgColor(color imgui.Vec4) {
 	a.backend.SetBgColor(color)
 }
 
-func (a *EbitenAdapter) Refresh() {
+func (a *Adapter) Refresh() {
 	a.backend.Refresh()
 }
 
-func (a *EbitenAdapter) GetWindowPos() (x, y int32) {
+func (a *Adapter) GetWindowPos() (x, y int32) {
 	return a.backend.GetWindowPos()
 }
 
-func (a *EbitenAdapter) SetWindowSize(width, height int) {
+func (a *Adapter) SetWindowSize(width, height int) {
 	a.backend.SetWindowSize(width, height)
 }
 
-func (a *EbitenAdapter) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
+func (a *Adapter) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
 	a.backend.SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight)
 }
 
-func (a *EbitenAdapter) SetWindowTitle(title string) {
+func (a *Adapter) SetWindowTitle(title string) {
 	a.backend.SetWindowTitle(title)
 }
 
-func (a *EbitenAdapter) DisplaySize() (width, height int32) {
+func (a *Adapter) DisplaySize() (width, height int32) {
 	return a.backend.DisplaySize()
 }
 
-func (a *EbitenAdapter) SetShouldClose(b bool) {
+func (a *Adapter) SetShouldClose(b bool) {
 	a.backend.SetShouldClose(b)
 }
 
-func (a *EbitenAdapter) ContentScale() (xScale, yScale float32) {
+func (a *Adapter) ContentScale() (xScale, yScale float32) {
 	return a.backend.ContentScale()
 }
 
-func (a *EbitenAdapter) SetTargetFPS(fps uint) {
+func (a *Adapter) SetTargetFPS(fps uint) {
 	a.backend.SetTargetFPS(fps)
 }
 
-func (a *EbitenAdapter) SetIcons(icons ...image.Image) {
+func (a *Adapter) SetIcons(icons ...image.Image) {
 	a.backend.SetIcons(icons...)
 }
 
-func (a *EbitenAdapter) Backend() *imgui.Backend[EbitenWindowFlags] {
+func (a *Adapter) Backend() *imgui.Backend[WindowFlags] {
 	return &a.backend
 }
 
-func NewEbitenAdapter() *EbitenAdapter {
+func NewEbitenAdapter() *Adapter {
 	b := &BackendBridge{
 		ctx: nil,
 	}
@@ -259,28 +259,28 @@ func NewEbitenAdapter() *EbitenAdapter {
 	b.ctx = imgui.CreateContext()
 	imgui.ImNodesCreateContext()
 
-	bb := (imgui.Backend[EbitenWindowFlags])(b)
+	bb := (imgui.Backend[WindowFlags])(b)
 	createdBackend, _ := imgui.CreateBackend(bb)
 
-	a := EbitenAdapter{
+	a := Adapter{
 		backend:    createdBackend,
 		ClipMask:   true,
 		inputChars: make([]rune, 0, 256),
 	}
 	a.setKeyMapping()
 
-	runtime.SetFinalizer(&a, (*EbitenAdapter).finalize)
+	runtime.SetFinalizer(&a, (*Adapter).finalize)
 
 	CurrentAdapter = &a
 
 	return &a
 }
 
-func (a *EbitenAdapter) finalize() {
+func (a *Adapter) finalize() {
 	runtime.SetFinalizer(a, nil)
 }
 
-func (a *EbitenAdapter) SetGame(g ebiten.Game) {
+func (a *Adapter) SetGame(g ebiten.Game) {
 	// Create game wrapper
 	a.game = &GameProxy{
 		game:       g,
@@ -289,7 +289,7 @@ func (a *EbitenAdapter) SetGame(g ebiten.Game) {
 	}
 }
 
-func (a *EbitenAdapter) SetGameRenderDestination(dest *ebiten.Image) {
+func (a *Adapter) SetGameRenderDestination(dest *ebiten.Image) {
 	// Cache gamescreen texture
 	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
 	Cache.SetTexture(tid, dest)
@@ -301,27 +301,27 @@ func (a *EbitenAdapter) SetGameRenderDestination(dest *ebiten.Image) {
 	})
 }
 
-func (a *EbitenAdapter) ScreenTextureID() imgui.TextureID {
+func (a *Adapter) ScreenTextureID() imgui.TextureID {
 	return a.game.ScreenTextureID()
 }
 
-func (a *EbitenAdapter) Game() *GameProxy {
+func (a *Adapter) Game() *GameProxy {
 	return a.game
 }
 
-func (a *EbitenAdapter) SetWindowPos(x, y int) {
+func (a *Adapter) SetWindowPos(x, y int) {
 	a.backend.SetWindowPos(x, y)
 }
 
-func (a *EbitenAdapter) CreateWindow(title string, width, height int) {
+func (a *Adapter) CreateWindow(title string, width, height int) {
 	a.backend.CreateWindow(title, width, height)
 }
 
-func (a *EbitenAdapter) Run(f func()) {
+func (a *Adapter) Run(f func()) {
 	a.backend.Run(f)
 }
 
-func (a *EbitenAdapter) setKeyMapping() {
+func (a *Adapter) setKeyMapping() {
 	// TODO
 	// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
 	/*
@@ -332,7 +332,7 @@ func (a *EbitenAdapter) setKeyMapping() {
 	*/
 }
 
-func (a *EbitenAdapter) SetGameScreenSize(size imgui.Vec2) {
+func (a *Adapter) SetGameScreenSize(size imgui.Vec2) {
 	if a.game.gameScreen == nil {
 		dest := ebiten.NewImage(int(size.X), int(size.Y))
 		a.SetGameRenderDestination(dest)

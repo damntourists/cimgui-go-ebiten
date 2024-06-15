@@ -12,16 +12,17 @@ import (
 
 var Cache TextureCache
 
-type EbitenWindowFlags int
+type WindowFlags int
+type WindowCloseCallback[B ~int] func(b imgui.Backend[B])
 
 const (
-	EbitenWindowFlagsNone = EbitenWindowFlags(iota)
-	EbitenWindowFlagsResizable
-	EbitenWindowFlagsMaximized
-	EbitenWindowFlagsMinimized
-	EbitenWindowFlagsDecorated
-	EbitenWindowFlagsFloating
-	EbitenWindowFlagsMousePassthrough
+	WindowFlagsNone = WindowFlags(iota)
+	WindowFlagsResizable
+	WindowFlagsMaximized
+	WindowFlagsMinimized
+	WindowFlagsDecorated
+	WindowFlagsFloating
+	WindowFlagsMousePassthrough
 
 	/*
 		Refer to the following for more modes/settings:
@@ -37,12 +38,12 @@ const (
 	*/
 )
 
-var _ imgui.Backend[EbitenWindowFlags] = &BackendBridge{}
+var _ imgui.Backend[WindowFlags] = &BackendBridge{}
 
 type (
 	BackendBridge struct {
 		dropCBFn        imgui.DropCallback
-		closeCBFn       imgui.WindowCloseCallback[EbitenWindowFlags]
+		closeCBFn       imgui.WindowCloseCallback[WindowFlags]
 		keyCBFn         imgui.KeyCallback
 		sizeChangedCbFn imgui.SizeChangeCallback
 
@@ -61,7 +62,22 @@ type (
 	}
 )
 
-func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
+func (b *BackendBridge) SetSwapInterval(interval BackendFlagsT) error {
+	//TODO implement me
+	panic("Not Implemented.")
+}
+
+func (b *BackendBridge) SetCursorPos(x, y float64) {
+	//TODO implement me
+	panic("Not Implemented.")
+}
+
+func (b *BackendBridge) SetInputMode(mode WindowFlags, value WindowFlags) {
+	//TODO implement me
+	panic("Not Implemented.")
+}
+
+func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[WindowFlags]) {
 	b.closeCBFn = cb
 }
 
@@ -69,22 +85,22 @@ func (b *BackendBridge) SetBgColor(color imgui.Vec4) {
 	b.bgColor = color
 }
 
-func (b *BackendBridge) SetWindowFlags(flag EbitenWindowFlags, value int) {
+func (b *BackendBridge) SetWindowFlags(flag WindowFlags, value int) {
 	//TODO implement me
 	switch flag {
-	case EbitenWindowFlagsResizable:
+	case WindowFlagsResizable:
+		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	case WindowFlagsMaximized:
 		fallthrough
-	case EbitenWindowFlagsMaximized:
+	case WindowFlagsMinimized:
 		fallthrough
-	case EbitenWindowFlagsMinimized:
+	case WindowFlagsDecorated:
 		fallthrough
-	case EbitenWindowFlagsDecorated:
+	case WindowFlagsFloating:
 		fallthrough
-	case EbitenWindowFlagsFloating:
+	case WindowFlagsMousePassthrough:
 		fallthrough
-	case EbitenWindowFlagsMousePassthrough:
-		fallthrough
-	default: // EbitenWindowFlagsNone
+	default: // WindowFlagsNone
 		//
 	}
 

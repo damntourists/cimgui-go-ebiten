@@ -7,7 +7,7 @@ import (
 
 type GameProxy struct {
 	game    ebiten.Game
-	adapter *EbitenAdapter
+	adapter *Adapter
 
 	width, height             float64
 	screenWidth, screenHeight int
