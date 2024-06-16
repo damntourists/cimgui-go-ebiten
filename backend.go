@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	"runtime"
+	"slices"
 	"unsafe"
 )
 
@@ -17,7 +18,14 @@ type WindowCloseCallback[B ~int] func(b imgui.Backend[B])
 
 const (
 	WindowFlagsNone = WindowFlags(iota)
-	WindowFlagsResizable
+
+	WindowResizeingMode
+	WindowResizingModeDisabled
+	WindowResizingModeOnlyFullscreenEnabled
+	WindowResizingModeEnabled
+
+	//WindowFlagsResizeMode
+	//WindowFlagsResizable
 	WindowFlagsMaximized
 	WindowFlagsMinimized
 	WindowFlagsDecorated
@@ -38,10 +46,24 @@ const (
 	*/
 )
 
-var _ imgui.Backend[WindowFlags] = &BackendBridge{}
+var _ imgui.Backend[WindowFlags] = &Bridge{}
+
+type Set [256]bool
+
+func (s *Set) Contains(b byte) bool {
+	return s[b]
+}
+
+func (s *Set) Add(b byte) {
+	s[b] = true
+}
+
+func (s *Set) Remove(b byte) {
+	s[b] = false
+}
 
 type (
-	BackendBridge struct {
+	Bridge struct {
 		dropCBFn        imgui.DropCallback
 		closeCBFn       imgui.WindowCloseCallback[WindowFlags]
 		keyCBFn         imgui.KeyCallback
@@ -62,34 +84,43 @@ type (
 	}
 )
 
-func (b *BackendBridge) SetSwapInterval(interval BackendFlagsT) error {
+func (b *Bridge) SetSwapInterval(interval WindowFlags) error {
+	//TODO - I was unable to find any reference to this in ebiten.
+	panic("Not Implemented.")
+}
+
+func (b *Bridge) SetCursorPos(x, y float64) {
+	//TODO As of this moment, I am unable to find a method in ebiten for setting cursor
+	//	position. :/
+	panic("Not Implemented.")
+}
+
+func (b *Bridge) SetInputMode(mode WindowFlags, value WindowFlags) {
 	//TODO implement me
 	panic("Not Implemented.")
 }
 
-func (b *BackendBridge) SetCursorPos(x, y float64) {
-	//TODO implement me
-	panic("Not Implemented.")
-}
-
-func (b *BackendBridge) SetInputMode(mode WindowFlags, value WindowFlags) {
-	//TODO implement me
-	panic("Not Implemented.")
-}
-
-func (b *BackendBridge) SetCloseCallback(cb imgui.WindowCloseCallback[WindowFlags]) {
+func (b *Bridge) SetCloseCallback(cb imgui.WindowCloseCallback[WindowFlags]) {
 	b.closeCBFn = cb
 }
 
-func (b *BackendBridge) SetBgColor(color imgui.Vec4) {
+func (b *Bridge) SetBgColor(color imgui.Vec4) {
 	b.bgColor = color
 }
 
-func (b *BackendBridge) SetWindowFlags(flag WindowFlags, value int) {
+func (b *Bridge) SetWindowFlags(flag WindowFlags, value WindowFlags) {
 	//TODO implement me
 	switch flag {
-	case WindowFlagsResizable:
-		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	case WindowResizeingMode:
+		f := []WindowFlags{
+			WindowResizingModeEnabled,
+			WindowResizingModeDisabled,
+			WindowResizingModeOnlyFullscreenEnabled,
+		}
+		if slices.Contains(f, value); !ok {
+			ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+		}
+
 	case WindowFlagsMaximized:
 		fallthrough
 	case WindowFlagsMinimized:
@@ -106,40 +137,40 @@ func (b *BackendBridge) SetWindowFlags(flag WindowFlags, value int) {
 
 }
 
-func (b *BackendBridge) SetAfterCreateContextHook(_ func()) {
+func (b *Bridge) SetAfterCreateContextHook(_ func()) {
 	// noop
 }
 
-func (b *BackendBridge) SetBeforeDestroyContextHook(_ func()) {
+func (b *Bridge) SetBeforeDestroyContextHook(_ func()) {
 	// noop
 }
 
-func (b *BackendBridge) SetBeforeRenderHook(_ func()) {
+func (b *Bridge) SetBeforeRenderHook(_ func()) {
 	// noop
 }
 
-func (b *BackendBridge) SetAfterRenderHook(_ func()) {
+func (b *Bridge) SetAfterRenderHook(_ func()) {
 	// noop
 }
 
-func (b *BackendBridge) SetKeyCallback(callback imgui.KeyCallback) {
+func (b *Bridge) SetKeyCallback(callback imgui.KeyCallback) {
 	b.keyCBFn = callback
 }
 
-func (b *BackendBridge) SetSizeChangeCallback(callback imgui.SizeChangeCallback) {
+func (b *Bridge) SetSizeChangeCallback(callback imgui.SizeChangeCallback) {
 	b.sizeChangedCbFn = callback
 }
 
-func (b *BackendBridge) SetDropCallback(callback imgui.DropCallback) {
+func (b *Bridge) SetDropCallback(callback imgui.DropCallback) {
 	b.dropCBFn = callback
 }
 
-func (b *BackendBridge) onfinalize() {
+func (b *Bridge) onfinalize() {
 	runtime.SetFinalizer(b, nil)
 	b.ctx.Destroy()
 }
 
-func (b *BackendBridge) CreateWindow(title string, width, height int) {
+func (b *Bridge) CreateWindow(title string, width, height int) {
 	// actually just sets up window. Run creates the window. This is
 	// to satisfy the interface.
 	b.ctx = imgui.CreateContext()
@@ -163,58 +194,58 @@ func (b *BackendBridge) CreateWindow(title string, width, height int) {
 
 }
 
-func (b *BackendBridge) Run(f func()) {
+func (b *Bridge) Run(f func()) {
 	f()
 }
 
-func (b *BackendBridge) Refresh() {
+func (b *Bridge) Refresh() {
 	println("backend bridge refreshing!")
 }
 
-func (b *BackendBridge) SetWindowPos(x, y int) {
+func (b *Bridge) SetWindowPos(x, y int) {
 	ebiten.SetWindowPosition(x, y)
 }
 
-func (b *BackendBridge) GetWindowPos() (x, y int32) {
+func (b *Bridge) GetWindowPos() (x, y int32) {
 	xx, yy := ebiten.WindowPosition()
 
 	return int32(xx), int32(yy)
 }
 
-func (b *BackendBridge) SetWindowSize(width, height int) {
+func (b *Bridge) SetWindowSize(width, height int) {
 	ebiten.SetWindowSize(width, height)
 }
 
-func (b *BackendBridge) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
+func (b *Bridge) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
 	ebiten.SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight)
 }
 
-func (b *BackendBridge) SetWindowTitle(title string) {
+func (b *Bridge) SetWindowTitle(title string) {
 	ebiten.SetWindowTitle(title)
 }
 
-func (b *BackendBridge) DisplaySize() (width int32, height int32) {
+func (b *Bridge) DisplaySize() (width int32, height int32) {
 	return
 }
 
-func (b *BackendBridge) SetShouldClose(shouldClose bool) {
+func (b *Bridge) SetShouldClose(shouldClose bool) {
 	ebiten.SetWindowClosingHandled(shouldClose)
 }
 
-func (b *BackendBridge) ContentScale() (xScale, yScale float32) {
+func (b *Bridge) ContentScale() (xScale, yScale float32) {
 	scale := ebiten.DeviceScaleFactor()
 	return float32(scale), float32(scale)
 }
 
-func (b *BackendBridge) SetTargetFPS(fps uint) {
+func (b *Bridge) SetTargetFPS(fps uint) {
 	ebiten.SetTPS(int(fps))
 }
 
-func (b *BackendBridge) SetIcons(icons ...image.Image) {
+func (b *Bridge) SetIcons(icons ...image.Image) {
 	ebiten.SetWindowIcon(icons)
 }
 
-func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
+func (b *Bridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
 	eimg := ebiten.NewImage(width, height)
 	eimg.WritePixels(premultiplyPixels(pixels, width, height))
 
@@ -223,11 +254,11 @@ func (b *BackendBridge) CreateTexture(pixels unsafe.Pointer, width, height int) 
 	return tid
 }
 
-func (b *BackendBridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
+func (b *Bridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
 	pix := img.Pix
 	return b.CreateTexture(unsafe.Pointer(&pix), width, height)
 }
 
-func (b *BackendBridge) DeleteTexture(id imgui.TextureID) {
+func (b *Bridge) DeleteTexture(id imgui.TextureID) {
 	Cache.RemoveTexture(id)
 }

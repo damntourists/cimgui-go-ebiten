@@ -103,6 +103,7 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 	if g.gameScreen != nil {
 		destination = g.gameScreen
 	}
+
 	destination.Clear()
 	g.game.Draw(destination)
 
@@ -110,13 +111,16 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 
 	if CurrentAdapter.ClipMask {
 		if CurrentAdapter.lmask == nil {
-			w, h := screen.Size()
+			w := screen.Bounds().Dx()
+			h := screen.Bounds().Dy()
 			CurrentAdapter.lmask = ebiten.NewImage(w, h)
 		} else {
-			w1, h1 := screen.Size()
-			w2, h2 := CurrentAdapter.lmask.Size()
+			w1 := screen.Bounds().Dx()
+			h1 := screen.Bounds().Dy()
+			w2 := CurrentAdapter.lmask.Bounds().Dx()
+			h2 := CurrentAdapter.lmask.Bounds().Dy()
 			if w1 != w2 || h1 != h2 {
-				CurrentAdapter.lmask.Dispose()
+				CurrentAdapter.lmask.Deallocate()
 				CurrentAdapter.lmask = ebiten.NewImage(w1, h1)
 			}
 		}

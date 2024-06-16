@@ -250,7 +250,7 @@ func (a *Adapter) Backend() *imgui.Backend[WindowFlags] {
 }
 
 func NewEbitenAdapter() *Adapter {
-	b := &BackendBridge{
+	b := &Bridge{
 		ctx: nil,
 	}
 
