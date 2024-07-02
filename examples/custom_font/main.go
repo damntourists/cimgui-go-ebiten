@@ -90,6 +90,26 @@ func rebuildFonts() {
 	_, _, _, _ = fontAtlas.GetTextureDataAsRGBA32()
 }
 
+func mainold() {
+	//
+	// The build tags listed below are required to compile with AllenDang/cimgui-go. You
+	// may, however, use the damntourists/cimgui-go-lite to bypass this requirement.
+	// Please refer to the go.mod file for more info.
+	//
+	// * exclude_cimgui_sdl
+	// * exclude_cimgui_glfw
+	//
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+
+	adapter.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
+	adapter.SetGame(MyGame{})
+
+	adapter.Run(func() {
+		rebuildFonts()
+		_ = ebiten.RunGame(adapter.Game())
+	})
+}
+
 func main() {
 	//
 	// The build tags listed below are required to compile with AllenDang/cimgui-go. You

@@ -18,5 +18,9 @@ example:
 ```
 go run -tags exclude_cimgui_glfw,exclude_cimgui_sdl examples/basic/main.go
 ```
-*Failure to do so will result in a number of ld failures. Ebiten has it's own GLFW 
+*Failure to do so will result in a number of ld failures. Ebiten has its own GLFW 
 implementation that conflicts with vanilla cimgui-go*
+
+
+## TODO
+    * Add gamepad support

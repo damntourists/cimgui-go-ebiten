@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	imgui "github.com/AllenDang/cimgui-go"
-	backend "github.com/damntourists/cimgui-go-ebiten"
+	"github.com/damntourists/cimgui-go-ebiten"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/images"
 	"image"
@@ -18,7 +18,7 @@ const (
 const mosaicRatio = 16
 
 var (
-	adapter      = backend.NewEbitenAdapter()
+	backend      = ebitenbackend.NewEbitenBackend()
 	gophersImage *ebiten.Image
 )
 
@@ -85,11 +85,11 @@ func main() {
 
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	renderDestination := ebiten.NewImage(320, 240)
-	adapter.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
-	adapter.SetGame(g)
-	adapter.SetGameScreenSize(imgui.Vec2{X: screenWidth, Y: screenHeight})
-	adapter.SetGameRenderDestination(renderDestination)
-	adapter.Run(func() {
-		_ = ebiten.RunGame(adapter.Game())
+	backend.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
+	backend.SetGame(g)
+	backend.SetGameScreenSize(imgui.Vec2{X: screenWidth, Y: screenHeight})
+	backend.SetGameRenderDestination(renderDestination)
+	backend.Run(func() {
+		_ = ebiten.RunGame(backend.Game())
 	})
 }
