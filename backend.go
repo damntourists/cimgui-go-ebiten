@@ -3,7 +3,6 @@ package ebitenbackend
 import "C"
 
 import (
-	"errors"
 	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
@@ -13,89 +12,53 @@ import (
 
 var Cache TextureCache
 
-type WindowFlags int
-type WindowResizingMode int
-type WindowCloseCallback[B ~int] func(b imgui.Backend[B])
+type EbitenWindowFlags int
 
 const (
-	EBTrue  = WindowFlags(1)
-	EBFalse = WindowFlags(0)
+	EbitenWindowFlagsCursorMode EbitenWindowFlags = iota
+	EbitenWindowFlagsCursorShape
+	EbitenWindowFlagsResizingMode
+	EbitenWindowFlagsFPSMode
+	// bools
+	EbitenWindowFlagsDecorated
+	EbitenWindowFlagsFloating
+	EbitenWindowFlagsMaximized
+	EbitenWindowFlagsMinimized
+	EbitenWindowFlagsClosingHandled
+	EbitenWindowFlagsMousePassthrough
 )
 
-const (
-	//SwapIntervalImmediate    = SDLWindowFlags(0)
-	SwapIntervalVsync = WindowFlags(1)
-	//SwapIntervalAdaptiveSync = SDLWindowFlags(-1)
-)
+type FPSModeType int
+type CursorMode int
+type CursorShape int
 
-const (
-	WindowFlagsNone = WindowFlags(iota)
-
-	WindowFlagsMaximized
-	WindowFlagsMinimized
-	WindowFlagsDecorated
-	WindowFlagsFloating
-	WindowFlagsMousePassthrough
-	/*
-	     // Window flags
-	     const (
-	   	SDLWindowFlagsFullScreen        = SDLWindowFlags(C.SDL_WINDOW_FULLSCREEN)
-	   	SDLWindowFlagsOpengl            = SDLWindowFlags(C.SDL_WINDOW_OPENGL)
-	   	SDLWindowFlagsTransparent       = SDLWindowFlags(C.SDL_WINDOW_HIDDEN)
-	   	SDLWindowFlagsVisible           = SDLWindowFlags(C.SDL_WINDOW_BORDERLESS)
-	   	SDLWindowFlagsResizable         = SDLWindowFlags(C.SDL_WINDOW_RESIZABLE)
-	   	SDLWindowFlagsMouseGrabbed      = SDLWindowFlags(C.SDL_WINDOW_MOUSE_GRABBED)
-	   	SDLWindowFlagsInputFocus        = SDLWindowFlags(C.SDL_WINDOW_INPUT_FOCUS)
-	   	SDLWindowFlagsMouseFocus        = SDLWindowFlags(C.SDL_WINDOW_MOUSE_FOCUS)
-	   	SDLWindowFlagsFullscreenDesktop = SDLWindowFlags(C.SDL_WINDOW_FULLSCREEN_DESKTOP)
-	   	SDLWindowFlagsWindowForeign     = SDLWindowFlags(C.SDL_WINDOW_FOREIGN)
-	   	SDLWindowFlagsAllowHighDPI      = SDLWindowFlags(C.SDL_WINDOW_ALLOW_HIGHDPI)
-	   	SDLWindowFlagsMouseCapture      = SDLWindowFlags(C.SDL_WINDOW_MOUSE_CAPTURE)
-	   	SDLWindowFlagsAlwaysOnTop       = SDLWindowFlags(C.SDL_WINDOW_ALWAYS_ON_TOP)
-	   	SDLWindowFlagsSkipTaskbar       = SDLWindowFlags(C.SDL_WINDOW_SKIP_TASKBAR)
-	   	SDLWindowFlagsUtility           = SDLWindowFlags(C.SDL_WINDOW_UTILITY)
-	   	SDLWindowFlagsTooltip           = SDLWindowFlags(C.SDL_WINDOW_TOOLTIP)
-	   	SDLWindowFlagsPopupMenu         = SDLWindowFlags(C.SDL_WINDOW_POPUP_MENU)
-	   	SDLWindowFlagsKeyboardGrabbed   = SDLWindowFlags(C.SDL_WINDOW_KEYBOARD_GRABBED)
-	   	SDLWindowFlagsWindowVulkan      = SDLWindowFlags(C.SDL_WINDOW_VULKAN)
-	   	SDLWindowFlagsWindowMetal       = SDLWindowFlags(C.SDL_WINDOW_METAL)
-	     )
-
-	      // SetWindowHint applies to next CreateWindow call
-	      // so use it before CreateWindow call ;-)
-	      // default applied flags: SDLWindowFlagsOpengl | SDLWindowFlagsResizable | SDLWindowFlagsAllowHighDPI
-	      // set flag if value is 1, clear flag if value is 0
-	      func (b *SDLBackend) SetWindowFlags(flag SDLWindowFlags, value int) {
-	   	C.igSDLWindowHint(C.SDL_WindowFlags(flag), C.int(value))
-	      }
-
-	*/
-	/*
-		Refer to the following for more modes/settings:
-			https://github.com/hajimehoshi/ebiten/blob/main/internal/ui/ui.go#L69
-
-			Ex:
-				type WindowResizingMode int
-				const (
-					WindowResizingModeDisabled WindowResizingMode = iota
-					WindowResizingModeOnlyFullscreenEnabled
-					WindowResizingModeEnabled
-				)
-	*/
-)
-
-var _ imgui.Backend[WindowFlags] = &Bridge{}
+// var _ imgui.Backend[EbitenWindowFlags] = &Bridge{}
+var _ imgui.Backend[EbitenWindowFlags] = &EbitenBackend{}
 
 type (
-	Bridge struct {
-		dropCBFn        imgui.DropCallback
-		closeCBFn       imgui.WindowCloseCallback[WindowFlags]
-		keyCBFn         imgui.KeyCallback
-		sizeChangedCbFn imgui.SizeChangeCallback
+	voidCallbackFunc            func()
+	DropCallback                func([]string)
+	KeyCallback                 func(key, scanCode, action, mods int)
+	SizeChangeCallback          func(w, h int)
+	WindowCloseCallback[B ~int] func(b imgui.Backend[B])
+)
+
+type (
+	EbitenBackend struct {
+		ctx *imgui.Context
+
+		afterCreateContext   voidCallbackFunc
+		loop                 voidCallbackFunc
+		beforeRender         voidCallbackFunc
+		afterRender          voidCallbackFunc
+		beforeDestoryContext voidCallbackFunc
+		dropCB               DropCallback
+		closeCB              imgui.WindowCloseCallback[EbitenWindowFlags] //func(pointer unsafe.Pointer)
+		keyCb                KeyCallback
+		sizeCb               SizeChangeCallback
+		//window               uintptr
 
 		fontAtlas *imgui.FontAtlas
-		io        *imgui.IO
-		ctx       *imgui.Context
 
 		lmask *ebiten.Image
 
@@ -104,125 +67,134 @@ type (
 		bgColor                   imgui.Vec4
 
 		ClipMask bool
-		Game     ebiten.Game
+		//Game     ebiten.Game
 	}
+	//
+	//Bridge struct {
+	//	dropCBFn        imgui.DropCallback
+	//	closeCBFn       imgui.WindowCloseCallback[EbitenWindowFlags]
+	//	keyCBFn         imgui.KeyCallback
+	//	sizeChangedCbFn imgui.SizeChangeCallback
+	//
+	//	fontAtlas *imgui.FontAtlas
+	//	io        *imgui.IO
+	//	ctx       *imgui.Context
+	//
+	//	lmask *ebiten.Image
+	//
+	//	width, height             float32
+	//	screenWidth, screenHeight int
+	//	bgColor                   imgui.Vec4
+	//
+	//	ClipMask bool
+	//	Game     ebiten.Game
+	//}
 )
 
-func (b *Bridge) SetSwapInterval(interval WindowFlags) error {
-	var err error
-	switch interval {
-	case SwapIntervalVsync:
-		ebiten.SetVsyncEnabled(true)
-	default:
-		err = errors.New("ebiten: invalid swapping interval")
-	}
-	return err
+func NewEbitenBackend() imgui.Backend[EbitenWindowFlags] {
+	Cache = NewCache()
+	b := (imgui.Backend[EbitenWindowFlags])(&EbitenBackend{})
+	//ctx := imgui.CreateContext()
+
+	return b
 }
 
-func (b *Bridge) SetCursorPos(x, y float64) {
-	//TODO As of this moment, I am unable to find a method in ebiten for setting cursor
-	//	position. :/
-	panic("Not Implemented.")
-}
+//func (b *EbitenBackend) Backend() *imgui.Backend[EbitenWindowFlags] {
+//	TODO implement me
+//panic("implement me")
+//}
 
-func (b *Bridge) SetInputMode(mode WindowFlags, value WindowFlags) {
+func (b *EbitenBackend) SetGame(game ebiten.Game) {
 	//TODO implement me
-	panic("Not Implemented.")
+	panic("implement me")
 }
 
-func (b *Bridge) SetCloseCallback(cb imgui.WindowCloseCallback[WindowFlags]) {
-	b.closeCBFn = cb
-}
-
-func (b *Bridge) SetBgColor(color imgui.Vec4) {
-	b.bgColor = color
-}
-
-func (b *Bridge) SetWindowResizingMode(mode ebiten.WindowResizingModeType) {
-	ebiten.SetWindowResizingMode(mode)
-}
-
-func (b *Bridge) SetWindowFlags(flag WindowFlags, value int) {
+func (b *EbitenBackend) Game() ebiten.Game {
 	//TODO implement me
-	switch flag {
-	case WindowFlagsMaximized:
-		switch value {
-		case int(EBTrue):
-			ebiten.MaximizeWindow()
-		case int(EBFalse):
-			ebiten.RestoreWindow()
-		default:
-			panic("Invalid value for WindowFlagsMaximized.")
-		}
-	case WindowFlagsMinimized:
-		switch value {
-		case int(EBTrue):
-			ebiten.MinimizeWindow()
-		case int(EBFalse):
-			ebiten.RestoreWindow()
-		default:
-			panic("Invalid value for WindowFlagsMinimized.")
-		}
-	case WindowFlagsDecorated:
-		ebiten.SetWindowDecorated(value == int(EBTrue))
-	case WindowFlagsFloating:
-		ebiten.SetWindowFloating(value == int(EBTrue))
-	case WindowFlagsMousePassthrough:
-		ebiten.SetWindowMousePassthrough(value == int(EBTrue))
-	default: // WindowFlagsNone
-		panic("Invalid flag for SetWindowFlags.")
-	}
+	panic("implement me")
 }
 
-func (b *Bridge) SetAfterCreateContextHook(_ func()) {
-	// noop
+func (b *EbitenBackend) finalize() {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (b *Bridge) SetBeforeDestroyContextHook(_ func()) {
-	// noop
+func (b *EbitenBackend) SetAfterCreateContextHook(hook func()) {
+	b.afterCreateContext = hook
 }
 
-func (b *Bridge) SetBeforeRenderHook(_ func()) {
-	// noop
+func (b *EbitenBackend) afterCreateHook() func() {
+	return b.afterCreateContext
 }
 
-func (b *Bridge) SetAfterRenderHook(_ func()) {
-	// noop
+func (b *EbitenBackend) SetBeforeDestroyContextHook(hook func()) {
+	b.beforeDestoryContext = hook
 }
 
-func (b *Bridge) SetKeyCallback(callback imgui.KeyCallback) {
-	b.keyCBFn = callback
+func (b *EbitenBackend) beforeDestroyHook() func() {
+	return b.beforeDestoryContext
 }
 
-func (b *Bridge) SetSizeChangeCallback(callback imgui.SizeChangeCallback) {
-	b.sizeChangedCbFn = callback
+func (b *EbitenBackend) SetBeforeRenderHook(hook func()) {
+	b.beforeRender = hook
 }
 
-func (b *Bridge) SetDropCallback(callback imgui.DropCallback) {
-	b.dropCBFn = callback
+func (b *EbitenBackend) beforeRenderHook() func() {
+	return b.beforeRender
 }
 
-func (b *Bridge) onfinalize() {
-	runtime.SetFinalizer(b, nil)
-	b.ctx.Destroy()
+func (b *EbitenBackend) SetAfterRenderHook(hook func()) {
+	b.afterRender = hook
 }
 
-func (b *Bridge) CreateWindow(title string, width, height int) {
-	// actually just sets up window. Run creates the window. This is
-	// to satisfy the interface.
+func (b *EbitenBackend) afterRenderHook() func() {
+	return b.afterRender
+}
+
+//func (b *EbitenBackend) SetBgColor(color imgui.Vec4) {
+//	//TODO implement me
+//	panic("implement me")
+//}
+
+func (b *EbitenBackend) loopFunc() func() {
+	return b.loop
+}
+
+func (b *EbitenBackend) dropCallback() DropCallback {
+	return b.dropCB
+}
+
+func (b *EbitenBackend) closeCallback() imgui.WindowCloseCallback[EbitenWindowFlags] {
+	return b.closeCB
+}
+
+func (b *EbitenBackend) DisplaySize() (width, height int32) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *EbitenBackend) SetCursorPos(x, y float64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *EbitenBackend) CreateWindow(title string, width, height int) {
 	b.ctx = imgui.CreateContext()
-	b.io = imgui.CurrentIO()
-	b.io.SetIniFilename("")
 
-	imgui.PlotCreateContext()
-	imgui.ImNodesCreateContext()
+	if b.afterCreateContext != nil {
+		b.afterCreateContext()
+	}
 
+	io := imgui.CurrentIO()
+	io.SetIniFilename("")
+
+	// TODO: why are we doing this again?
 	sf := ebiten.Monitor().DeviceScaleFactor()
 	imgui.CurrentStyle().ScaleAllSizes(float32(sf))
 
 	ebiten.SetWindowTitle(title)
 	ebiten.SetWindowSize(int(float64(width)), int(float64(height)))
-	b.io.SetDisplaySize(
+	io.SetDisplaySize(
 		imgui.Vec2{
 			X: float32(float64(width)),
 			Y: float32(float64(height)),
@@ -231,58 +203,7 @@ func (b *Bridge) CreateWindow(title string, width, height int) {
 
 }
 
-func (b *Bridge) Run(f func()) {
-	f()
-}
-
-func (b *Bridge) Refresh() {
-	println("backend bridge refreshing!")
-}
-
-func (b *Bridge) SetWindowPos(x, y int) {
-	ebiten.SetWindowPosition(x, y)
-}
-
-func (b *Bridge) GetWindowPos() (x, y int32) {
-	xx, yy := ebiten.WindowPosition()
-
-	return int32(xx), int32(yy)
-}
-
-func (b *Bridge) SetWindowSize(width, height int) {
-	ebiten.SetWindowSize(width, height)
-}
-
-func (b *Bridge) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
-	ebiten.SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight)
-}
-
-func (b *Bridge) SetWindowTitle(title string) {
-	ebiten.SetWindowTitle(title)
-}
-
-func (b *Bridge) DisplaySize() (width int32, height int32) {
-	return
-}
-
-func (b *Bridge) SetShouldClose(shouldClose bool) {
-	ebiten.SetWindowClosingHandled(shouldClose)
-}
-
-func (b *Bridge) ContentScale() (xScale, yScale float32) {
-	scale := ebiten.Monitor().DeviceScaleFactor()
-	return float32(scale), float32(scale)
-}
-
-func (b *Bridge) SetTargetFPS(fps uint) {
-	ebiten.SetTPS(int(fps))
-}
-
-func (b *Bridge) SetIcons(icons ...image.Image) {
-	ebiten.SetWindowIcon(icons)
-}
-
-func (b *Bridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
+func (b *EbitenBackend) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
 	eimg := ebiten.NewImage(width, height)
 	eimg.WritePixels(premultiplyPixels(pixels, width, height))
 
@@ -291,11 +212,128 @@ func (b *Bridge) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.T
 	return tid
 }
 
-func (b *Bridge) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
+func (b *EbitenBackend) CreateTextureRgba(img *image.RGBA, width, height int) imgui.TextureID {
 	pix := img.Pix
 	return b.CreateTexture(unsafe.Pointer(&pix), width, height)
 }
 
-func (b *Bridge) DeleteTexture(id imgui.TextureID) {
+func (b *EbitenBackend) DeleteTexture(id imgui.TextureID) {
 	Cache.RemoveTexture(id)
+}
+
+func (b *EbitenBackend) SetSwapInterval(interval EbitenWindowFlags) error {
+	ebiten.SetVsyncEnabled(interval > 0)
+	return nil
+}
+
+func (b *EbitenBackend) SetInputMode(mode EbitenWindowFlags, value EbitenWindowFlags) {
+	//TODO implement me
+	panic("Not Implemented.")
+}
+
+func (b *EbitenBackend) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
+	b.closeCB = cb
+}
+
+func (b *EbitenBackend) SetBgColor(color imgui.Vec4) {
+	b.bgColor = color
+}
+
+func (b *EbitenBackend) SetWindowFlags(flag EbitenWindowFlags, value int) {
+	switch flag {
+	case EbitenWindowFlagsCursorMode:
+		ebiten.SetCursorMode(ebiten.CursorModeType(value))
+	case EbitenWindowFlagsCursorShape:
+		ebiten.SetCursorShape(ebiten.CursorShapeType(value))
+	case EbitenWindowFlagsFPSMode:
+		ebiten.SetVsyncEnabled(value == 0)
+	case EbitenWindowFlagsResizingMode:
+		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeType(value))
+	case EbitenWindowFlagsDecorated:
+		ebiten.SetWindowDecorated(value != 0)
+	case EbitenWindowFlagsFloating:
+		ebiten.SetWindowFloating(value != 0)
+	case EbitenWindowFlagsMaximized:
+		if value != 0 {
+			ebiten.MaximizeWindow()
+		} else {
+			ebiten.RestoreWindow()
+		}
+	case EbitenWindowFlagsMinimized:
+		if value != 0 {
+			ebiten.MinimizeWindow()
+		} else {
+			ebiten.RestoreWindow()
+		}
+	case EbitenWindowFlagsClosingHandled:
+		ebiten.SetWindowClosingHandled(value != 0)
+	case EbitenWindowFlagsMousePassthrough:
+		ebiten.SetWindowMousePassthrough(value != 0)
+	default:
+		panic("Invalid flag for SetWindowFlags.")
+	}
+}
+
+func (b *EbitenBackend) SetKeyCallback(callback imgui.KeyCallback) {
+	b.keyCb = KeyCallback(callback)
+}
+
+func (b *EbitenBackend) SetSizeChangeCallback(callback imgui.SizeChangeCallback) {
+	b.sizeCb = SizeChangeCallback(callback)
+}
+
+func (b *EbitenBackend) SetDropCallback(callback imgui.DropCallback) {
+	b.dropCB = DropCallback(callback)
+}
+
+func (b *EbitenBackend) onfinalize() {
+	runtime.SetFinalizer(b, nil)
+	b.ctx.Destroy()
+}
+
+func (b *EbitenBackend) Run(f func()) {
+	f()
+}
+
+func (b *EbitenBackend) Refresh() {
+	println("backend refreshing!")
+}
+
+func (b *EbitenBackend) SetWindowPos(x, y int) {
+	ebiten.SetWindowPosition(x, y)
+}
+
+func (b *EbitenBackend) GetWindowPos() (x, y int32) {
+	xx, yy := ebiten.WindowPosition()
+
+	return int32(xx), int32(yy)
+}
+
+func (b *EbitenBackend) SetWindowSize(width, height int) {
+	ebiten.SetWindowSize(width, height)
+}
+
+func (b *EbitenBackend) SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight int) {
+	ebiten.SetWindowSizeLimits(minWidth, minHeight, maxWidth, maxHeight)
+}
+
+func (b *EbitenBackend) SetWindowTitle(title string) {
+	ebiten.SetWindowTitle(title)
+}
+
+func (b *EbitenBackend) SetShouldClose(shouldClose bool) {
+	ebiten.SetWindowClosingHandled(shouldClose)
+}
+
+func (b *EbitenBackend) ContentScale() (xScale, yScale float32) {
+	scale := ebiten.Monitor().DeviceScaleFactor()
+	return float32(scale), float32(scale)
+}
+
+func (b *EbitenBackend) SetTargetFPS(fps uint) {
+	ebiten.SetTPS(int(fps))
+}
+
+func (b *EbitenBackend) SetIcons(icons ...image.Image) {
+	ebiten.SetWindowIcon(icons)
 }
