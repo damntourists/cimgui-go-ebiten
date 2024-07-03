@@ -41,6 +41,8 @@ type (
 	EbitenBackend struct {
 		ctx *imgui.Context
 
+		inputChars []rune
+
 		afterCreateContext   voidCallbackFunc
 		loop                 voidCallbackFunc
 		beforeRender         voidCallbackFunc
@@ -63,29 +65,65 @@ type (
 		fontAtlas *imgui.FontAtlas
 
 		game *ebiten.Game
+
+		// TODO: Start implementing stuff from adapter here.
+	}
+
+	// TODO: Perhaps rename to compositor?
+	GameProxy struct {
+		game    ebiten.Game
+		adapter *Adapter
+
+		width, height             float64
+		screenWidth, screenHeight int
+
+		gameScreenTextureID imgui.TextureID
+		gameScreen          *ebiten.Image
+
+		filter ebiten.Filter
+
+		clipRegion imgui.Vec2
+
+		Resizeable bool
 	}
 )
 
 func NewEbitenBackend() imgui.Backend[EbitenWindowFlags] {
 	Cache = NewCache()
 	b := (imgui.Backend[EbitenWindowFlags])(&EbitenBackend{})
+	runtime.SetFinalizer(&b, (*EbitenBackend).onfinalize)
 
 	return b
 }
 
 func (b *EbitenBackend) SetGame(game *ebiten.Game) {
+	/*
+		func (a *Adapter) SetGame(g ebiten.Game) {
+			// Create game wrapper
+			a.game = &GameProxy{
+				game:       g,
+				filter:     ebiten.FilterNearest,
+				clipRegion: imgui.Vec2{X: 1, Y: 1},
+			}
+		}
+	*/
 	b.game = game
 }
 
 func (b *EbitenBackend) Game() *ebiten.Game {
 	return b.game
 }
-
-func (b *EbitenBackend) finalize() {
-	//TODO implement me
-	panic("implement me")
+func (b *EbitenBackend) SetGameRenderDestination(dest *ebiten.Image) {
+	// Cache gamescreen texture
+	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
+	Cache.SetTexture(tid, dest)
+	a.game.gameScreenTextureID = tid
+	a.game.gameScreen = dest
+	a.SetGameScreenSize(imgui.Vec2{
+		X: float32(dest.Bounds().Size().X),
+		Y: float32(dest.Bounds().Size().Y),
+	})
 }
-
 func (b *EbitenBackend) SetAfterCreateContextHook(hook func()) {
 	b.afterCreateContext = hook
 }
@@ -250,6 +288,9 @@ func (b *EbitenBackend) SetDropCallback(callback imgui.DropCallback) {
 
 func (b *EbitenBackend) onfinalize() {
 	runtime.SetFinalizer(b, nil)
+	if b.beforeDestroyContext != nil {
+		b.beforeDestroyContext()
+	}
 	b.ctx.Destroy()
 }
 
@@ -267,7 +308,6 @@ func (b *EbitenBackend) SetWindowPos(x, y int) {
 
 func (b *EbitenBackend) GetWindowPos() (x, y int32) {
 	xx, yy := ebiten.WindowPosition()
-
 	return int32(xx), int32(yy)
 }
 

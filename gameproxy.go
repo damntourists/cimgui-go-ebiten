@@ -5,22 +5,23 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type GameProxy struct {
-	game    ebiten.Game
-	adapter *Adapter
-
-	width, height             float64
-	screenWidth, screenHeight int
-
-	gameScreenTextureID imgui.TextureID
-	gameScreen          *ebiten.Image
-
-	filter ebiten.Filter
-
-	clipRegion imgui.Vec2
-
-	Resizeable bool
-}
+//
+//type GameProxy struct {
+//	game    ebiten.Game
+//	adapter *Adapter
+//
+//	width, height             float64
+//	screenWidth, screenHeight int
+//
+//	gameScreenTextureID imgui.TextureID
+//	gameScreen          *ebiten.Image
+//
+//	filter ebiten.Filter
+//
+//	clipRegion imgui.Vec2
+//
+//	Resizeable bool
+//}
 
 func (g *GameProxy) Game() ebiten.Game {
 	return g.game
