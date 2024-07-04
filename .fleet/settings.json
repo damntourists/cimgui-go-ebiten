@@ -1,0 +1,7 @@
+{
+    "editor.guides": [
+        80,
+        120
+    ],
+    "editor.formatOnSave": true
+}

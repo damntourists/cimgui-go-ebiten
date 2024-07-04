@@ -2,7 +2,7 @@ package main
 
 import (
 	imgui "github.com/AllenDang/cimgui-go"
-	backend "github.com/damntourists/cimgui-go-ebiten"
+	"github.com/damntourists/cimgui-go-ebiten"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	adapter = backend.NewEbitenAdapter()
+	backend = ebitenbackend.NewEbitenBackend()
 	// scale font size based on ebiten's scale factor
 	fontSize = float32(math.Floor(24 * ebiten.Monitor().DeviceScaleFactor()))
 )
@@ -119,13 +119,30 @@ func main() {
 	// * exclude_cimgui_sdl
 	// * exclude_cimgui_glfw
 	//
+
+	backend, err := imgui.CreateBackend(
+		ebitenbackend.NewEbitenBackend(),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	backend.SetAfterCreateContextHook(func() {})
+	backend.SetBeforeDestroyContextHook(func() {})
+
+	//ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	backend.SetWindowFlags(
+		ebitenbackend.EbitenWindowFlagsResizingMode,
+		int(ebiten.WindowResizingModeEnabled),
+	)
+
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	adapter.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
-	adapter.SetGame(MyGame{})
+	backend.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
+	backend.SetGame(MyGame{})
 
-	adapter.Run(func() {
+	backend.Run(func() {
 		rebuildFonts()
-		_ = ebiten.RunGame(adapter.Game())
+		_ = ebiten.RunGame(backend.Game())
 	})
 }

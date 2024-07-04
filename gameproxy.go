@@ -5,23 +5,22 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-//
-//type GameProxy struct {
-//	game    ebiten.Game
-//	adapter *Adapter
-//
-//	width, height             float64
-//	screenWidth, screenHeight int
-//
-//	gameScreenTextureID imgui.TextureID
-//	gameScreen          *ebiten.Image
-//
-//	filter ebiten.Filter
-//
-//	clipRegion imgui.Vec2
-//
-//	Resizeable bool
-//}
+type GameProxy struct {
+	game    ebiten.Game
+	backend *EbitenBackend
+
+	width, height             float64
+	screenWidth, screenHeight int
+
+	gameScreenTextureID imgui.TextureID
+	gameScreen          *ebiten.Image
+
+	filter ebiten.Filter
+
+	clipRegion imgui.Vec2
+
+	Resizeable bool
+}
 
 func (g *GameProxy) Game() ebiten.Game {
 	return g.game
@@ -36,7 +35,7 @@ func (g *GameProxy) Update() error {
 	io := imgui.CurrentIO()
 
 	// Sync keyboard
-	CurrentAdapter.inputChars = sendInput(imgui.CurrentIO(), CurrentAdapter.inputChars)
+	g.backend.inputChars = sendInput(imgui.CurrentIO(), g.backend.inputChars)
 
 	// Sync mouse wheel
 	xoff, yoff := ebiten.Wheel()
@@ -110,22 +109,22 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 
 	imgui.Render()
 
-	if CurrentAdapter.ClipMask {
-		if CurrentAdapter.lmask == nil {
+	if g.backend.clipMask {
+		if g.backend.lmask == nil {
 			w := screen.Bounds().Dx()
 			h := screen.Bounds().Dy()
-			CurrentAdapter.lmask = ebiten.NewImage(w, h)
+			g.backend.lmask = ebiten.NewImage(w, h)
 		} else {
 			w1 := screen.Bounds().Dx()
 			h1 := screen.Bounds().Dy()
-			w2 := CurrentAdapter.lmask.Bounds().Dx()
-			h2 := CurrentAdapter.lmask.Bounds().Dy()
+			w2 := g.backend.lmask.Bounds().Dx()
+			h2 := g.backend.lmask.Bounds().Dy()
 			if w1 != w2 || h1 != h2 {
-				CurrentAdapter.lmask.Deallocate()
-				CurrentAdapter.lmask = ebiten.NewImage(w1, h1)
+				g.backend.lmask.Deallocate()
+				g.backend.lmask = ebiten.NewImage(w1, h1)
 			}
 		}
-		RenderMasked(screen, CurrentAdapter.lmask, imgui.CurrentDrawData(), Cache, g.filter)
+		RenderMasked(screen, g.backend.lmask, imgui.CurrentDrawData(), Cache, g.filter)
 	} else {
 		Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
 	}

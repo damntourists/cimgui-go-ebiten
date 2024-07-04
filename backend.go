@@ -27,8 +27,6 @@ const (
 	EbitenWindowFlagsMousePassthrough
 )
 
-var _ imgui.Backend[EbitenWindowFlags] = &EbitenBackend{}
-
 type (
 	voidCallbackFunc            func()
 	DropCallback                func([]string)
@@ -36,6 +34,8 @@ type (
 	SizeChangeCallback          func(w, h int)
 	WindowCloseCallback[B ~int] func(b imgui.Backend[B])
 )
+
+var _ imgui.Backend[EbitenWindowFlags] = &EbitenBackend{}
 
 type (
 	EbitenBackend struct {
@@ -64,66 +64,59 @@ type (
 
 		fontAtlas *imgui.FontAtlas
 
-		game *ebiten.Game
-
-		// TODO: Start implementing stuff from adapter here.
-	}
-
-	// TODO: Perhaps rename to compositor?
-	GameProxy struct {
-		game    ebiten.Game
-		adapter *Adapter
-
-		width, height             float64
-		screenWidth, screenHeight int
-
-		gameScreenTextureID imgui.TextureID
-		gameScreen          *ebiten.Image
-
-		filter ebiten.Filter
-
-		clipRegion imgui.Vec2
-
-		Resizeable bool
+		game *GameProxy
 	}
 )
 
-func NewEbitenBackend() imgui.Backend[EbitenWindowFlags] {
+func NewEbitenBackend(g ebiten.Game) *EbitenBackend {
 	Cache = NewCache()
-	b := (imgui.Backend[EbitenWindowFlags])(&EbitenBackend{})
-	runtime.SetFinalizer(&b, (*EbitenBackend).onfinalize)
+	b := &EbitenBackend{
+		game: &GameProxy{
+			game:       g,
+			filter:     ebiten.FilterNearest,
+			clipRegion: imgui.Vec2{X: 1, Y: 1},
+		},
+	}
+	b.game.backend = b
+
+	runtime.SetFinalizer(b, (*EbitenBackend).onfinalize)
 
 	return b
 }
 
-func (b *EbitenBackend) SetGame(game *ebiten.Game) {
-	/*
-		func (a *Adapter) SetGame(g ebiten.Game) {
-			// Create game wrapper
-			a.game = &GameProxy{
-				game:       g,
-				filter:     ebiten.FilterNearest,
-				clipRegion: imgui.Vec2{X: 1, Y: 1},
-			}
-		}
-	*/
-	b.game = game
+func (b *EbitenBackend) SetGame(game ebiten.Game) {
+	b.game = &GameProxy{
+		backend:    b,
+		game:       game,
+		filter:     ebiten.FilterNearest,
+		clipRegion: imgui.Vec2{X: 1, Y: 1},
+	} //game
 }
 
-func (b *EbitenBackend) Game() *ebiten.Game {
-	return b.game
+func (b *EbitenBackend) Game() ebiten.Game {
+	return b.game.Game()
 }
+
 func (b *EbitenBackend) SetGameRenderDestination(dest *ebiten.Image) {
 	// Cache gamescreen texture
 	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
 	Cache.SetTexture(tid, dest)
-	a.game.gameScreenTextureID = tid
-	a.game.gameScreen = dest
-	a.SetGameScreenSize(imgui.Vec2{
+	b.game.gameScreenTextureID = tid
+	b.game.gameScreen = dest
+	b.SetGameScreenSize(imgui.Vec2{
 		X: float32(dest.Bounds().Size().X),
 		Y: float32(dest.Bounds().Size().Y),
 	})
 }
+
+func (b *EbitenBackend) SetGameScreenSize(size imgui.Vec2) {
+	if b.game.gameScreen == nil {
+		dest := ebiten.NewImage(int(size.X), int(size.Y))
+		b.SetGameRenderDestination(dest)
+	}
+	b.game.SetGameScreenSize(size)
+}
+
 func (b *EbitenBackend) SetAfterCreateContextHook(hook func()) {
 	b.afterCreateContext = hook
 }
@@ -188,10 +181,6 @@ func (b *EbitenBackend) CreateWindow(title string, width, height int) {
 	io := imgui.CurrentIO()
 	io.SetIniFilename("")
 
-	// TODO: why are we doing this again?
-	sf := ebiten.Monitor().DeviceScaleFactor()
-	imgui.CurrentStyle().ScaleAllSizes(float32(sf))
-
 	ebiten.SetWindowTitle(title)
 	ebiten.SetWindowSize(int(float64(width)), int(float64(height)))
 	io.SetDisplaySize(
@@ -200,7 +189,6 @@ func (b *EbitenBackend) CreateWindow(title string, width, height int) {
 			Y: float32(float64(height)),
 		},
 	)
-
 }
 
 func (b *EbitenBackend) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
@@ -233,6 +221,7 @@ func (b *EbitenBackend) SetInputMode(mode EbitenWindowFlags, value EbitenWindowF
 
 func (b *EbitenBackend) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
 	b.closeCB = cb
+	//WindowCloseCallback[B ~int]func(b Backend[BackendFlagsT])
 }
 
 func (b *EbitenBackend) SetBgColor(color imgui.Vec4) {
