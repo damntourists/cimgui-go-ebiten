@@ -20,9 +20,12 @@ var (
 	fontSize = float32(math.Floor(24 * ebiten.Monitor().DeviceScaleFactor()))
 )
 
-type MyGame struct{}
+type MyGame struct {
+	backend *ebitenbackend.EbitenBackend
+}
 
-func (m MyGame) Draw(screen *ebiten.Image) {
+func (m *MyGame) Draw(screen *ebiten.Image) {
+
 	var tileSize = 32
 
 	var gridColor = color.RGBA{R: 100, G: 100, B: 100, A: 1}
@@ -121,7 +124,7 @@ func main() {
 	//
 
 	backend, err := imgui.CreateBackend(
-		ebitenbackend.NewEbitenBackend(),
+		ebitenbackend.NewEbitenBackend(MyGame{}),
 	)
 	if err != nil {
 		panic(err)
@@ -139,10 +142,10 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	backend.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
-	backend.SetGame(MyGame{})
+	//backend.SetGame(MyGame{})
 
 	backend.Run(func() {
 		rebuildFonts()
-		_ = ebiten.RunGame(backend.Game())
+		_ = ebiten.RunGame(backend)
 	})
 }

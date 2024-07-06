@@ -44,14 +44,15 @@ type (
 		inputChars []rune
 
 		afterCreateContext   voidCallbackFunc
-		loop                 voidCallbackFunc
 		beforeRender         voidCallbackFunc
 		afterRender          voidCallbackFunc
 		beforeDestroyContext voidCallbackFunc
 		dropCB               DropCallback
 		closeCB              imgui.WindowCloseCallback[EbitenWindowFlags]
 		keyCb                KeyCallback
+		loop                 voidCallbackFunc
 		sizeCb               SizeChangeCallback
+
 		// TODO: Do we need to have a handle on the window? Does ebiten let us?
 		//window               uintptr
 
@@ -68,7 +69,7 @@ type (
 	}
 )
 
-func NewEbitenBackend(g ebiten.Game) *EbitenBackend {
+func NewEbitenBackend() *EbitenBackend {
 	Cache = NewCache()
 	b := &EbitenBackend{
 		game: &GameProxy{
@@ -148,29 +149,23 @@ func (b *EbitenBackend) SetAfterRenderHook(hook func()) {
 func (b *EbitenBackend) afterRenderHook() func() {
 	return b.afterRender
 }
-
 func (b *EbitenBackend) loopFunc() func() {
 	return b.loop
 }
-
 func (b *EbitenBackend) dropCallback() DropCallback {
 	return b.dropCB
 }
-
 func (b *EbitenBackend) closeCallback() imgui.WindowCloseCallback[EbitenWindowFlags] {
 	return b.closeCB
 }
-
 func (b *EbitenBackend) DisplaySize() (width, height int32) {
 	//TODO implement me
 	panic("implement me")
 }
-
 func (b *EbitenBackend) SetCursorPos(x, y float64) {
 	//TODO implement me
 	panic("implement me")
 }
-
 func (b *EbitenBackend) CreateWindow(title string, width, height int) {
 	b.ctx = imgui.CreateContext()
 
@@ -190,7 +185,6 @@ func (b *EbitenBackend) CreateWindow(title string, width, height int) {
 		},
 	)
 }
-
 func (b *EbitenBackend) CreateTexture(pixels unsafe.Pointer, width, height int) imgui.TextureID {
 	eimg := ebiten.NewImage(width, height)
 	eimg.WritePixels(premultiplyPixels(pixels, width, height))
@@ -219,9 +213,9 @@ func (b *EbitenBackend) SetInputMode(mode EbitenWindowFlags, value EbitenWindowF
 	panic("Not Implemented.")
 }
 
+// func (b *GLFWBackend) SetCloseCallback(cbfun WindowCloseCallback[GLFWWindowFlags]) {
 func (b *EbitenBackend) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
 	b.closeCB = cb
-	//WindowCloseCallback[B ~int]func(b Backend[BackendFlagsT])
 }
 
 func (b *EbitenBackend) SetBgColor(color imgui.Vec4) {
