@@ -6,7 +6,7 @@ import (
 )
 
 type GameProxy struct {
-	game    ebiten.Game
+	game    *ebiten.Game
 	backend *EbitenBackend
 
 	width, height             float64
@@ -86,8 +86,8 @@ func (g *GameProxy) Update() error {
 	}
 
 	imgui.NewFrame()
-	err := g.game.Update()
-	imgui.EndFrame()
+	err :=
+		imgui.EndFrame()
 	return err
 }
 
