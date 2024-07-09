@@ -213,6 +213,7 @@ func (b *EbitenBackend) SetInputMode(mode EbitenWindowFlags, value EbitenWindowF
 	panic("Not Implemented.")
 }
 
+// func (b *GLFWBackend) SetCloseCallback(cbfun WindowCloseCallback[GLFWWindowFlags]) {
 func (b *EbitenBackend) SetCloseCallback(cb imgui.WindowCloseCallback[EbitenWindowFlags]) {
 	b.closeCB = cb
 }
