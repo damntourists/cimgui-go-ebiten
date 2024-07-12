@@ -18,7 +18,6 @@ const (
 const mosaicRatio = 16
 
 var (
-	backend      = ebitenbackend.NewEbitenBackend()
 	gophersImage *ebiten.Image
 )
 
@@ -32,6 +31,7 @@ func init() {
 }
 
 type MyGame struct {
+	backend             *ebitenbackend.EbitenBackend
 	gophersRenderTarget *ebiten.Image
 }
 
@@ -52,7 +52,7 @@ func (m *MyGame) Update() error {
 	imgui.ShowDemoWindow()
 	imgui.Begin("Game In UI")
 
-	Image(adapter.ScreenTextureID(), imgui.Vec2{X: screenWidth, Y: screenHeight})
+	Image(m.backend.Game().ScreenTextureID(), imgui.Vec2{X: screenWidth, Y: screenHeight})
 	imgui.End()
 	return nil
 }
@@ -70,25 +70,25 @@ func Image(tid imgui.TextureID, size imgui.Vec2) {
 }
 
 func main() {
-	//
-	// The build tags listed below are required to compile with AllenDang/cimgui-go. You
-	// may, however, use the damntourists/cimgui-go-lite to bypass this requirement.
-	// Please refer to the go.mod file for more info.
-	//
-	// * exclude_cimgui_sdl
-	// * exclude_cimgui_glfw
-	//
 	w, h := gophersImage.Bounds().Dx(), gophersImage.Bounds().Dy()
-	g := &MyGame{
-		gophersRenderTarget: ebiten.NewImage(w/mosaicRatio, h/mosaicRatio),
-	}
 
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	renderDestination := ebiten.NewImage(320, 240)
-	backend.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
-	backend.SetGame(g)
+	backend := ebitenbackend.NewEbitenBackend()
+	backend.SetGame(
+		&MyGame{
+			backend:             backend,
+			gophersRenderTarget: ebiten.NewImage(w/mosaicRatio, h/mosaicRatio),
+		},
+	)
+	backend.SetWindowFlags(
+		ebitenbackend.EbitenWindowFlagsResizingMode,
+		int(ebiten.WindowResizingModeEnabled),
+	)
 	backend.SetGameScreenSize(imgui.Vec2{X: screenWidth, Y: screenHeight})
+
+	renderDestination := ebiten.NewImage(320, 240)
 	backend.SetGameRenderDestination(renderDestination)
+
+	backend.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
 	backend.Run(func() {
 		_ = ebiten.RunGame(backend.Game())
 	})

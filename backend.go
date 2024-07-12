@@ -65,45 +65,39 @@ type (
 
 		fontAtlas *imgui.FontAtlas
 
-		game *GameProxy
+		proxy *GameProxy
 	}
 )
 
 func NewEbitenBackend() *EbitenBackend {
 	Cache = NewCache()
 	b := &EbitenBackend{
-		//game: &GameProxy{
-		//	game:       g,
-		//	filter:     ebiten.FilterNearest,
-		//	clipRegion: imgui.Vec2{X: 1, Y: 1},
-		//},
+		clipMask: true,
 	}
-	//b.game.backend = b
 
 	runtime.SetFinalizer(b, (*EbitenBackend).onfinalize)
-
 	return b
 }
 
 func (b *EbitenBackend) SetGame(game ebiten.Game) {
-	b.game = &GameProxy{
+	b.proxy = &GameProxy{
 		backend:    b,
-		game:       &game,
+		game:       game,
 		filter:     ebiten.FilterNearest,
 		clipRegion: imgui.Vec2{X: 1, Y: 1},
-	} //game
+	}
 }
 
-func (b *EbitenBackend) Game() *ebiten.Game {
-	return b.game.Game()
+func (b *EbitenBackend) Game() *GameProxy {
+	return b.proxy
 }
 
 func (b *EbitenBackend) SetGameRenderDestination(dest *ebiten.Image) {
 	// Cache gamescreen texture
 	tid := imgui.TextureID{Data: uintptr(Cache.NextId())}
 	Cache.SetTexture(tid, dest)
-	b.game.gameScreenTextureID = tid
-	b.game.gameScreen = dest
+	b.proxy.gameScreenTextureID = tid
+	b.proxy.gameScreen = dest
 	b.SetGameScreenSize(imgui.Vec2{
 		X: float32(dest.Bounds().Size().X),
 		Y: float32(dest.Bounds().Size().Y),
@@ -111,11 +105,11 @@ func (b *EbitenBackend) SetGameRenderDestination(dest *ebiten.Image) {
 }
 
 func (b *EbitenBackend) SetGameScreenSize(size imgui.Vec2) {
-	if b.game.gameScreen == nil {
+	if b.proxy.gameScreen == nil {
 		dest := ebiten.NewImage(int(size.X), int(size.Y))
 		b.SetGameRenderDestination(dest)
 	}
-	b.game.SetGameScreenSize(size)
+	b.proxy.SetGameScreenSize(size)
 }
 
 func (b *EbitenBackend) SetAfterCreateContextHook(hook func()) {

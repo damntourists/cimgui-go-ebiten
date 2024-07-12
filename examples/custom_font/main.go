@@ -15,14 +15,10 @@ const (
 )
 
 var (
-	//backend = ebitenbackend.NewEbitenBackend()
-	// scale font size based on ebiten's scale factor
 	fontSize = float32(math.Floor(24 * ebiten.Monitor().DeviceScaleFactor()))
 )
 
-type MyGame struct {
-	//backend *ebitenbackend.EbitenBackend
-}
+type MyGame struct{}
 
 func (m *MyGame) Draw(screen *ebiten.Image) {
 	var tileSize = 32
@@ -69,8 +65,6 @@ func rebuildFonts() {
 	}
 
 	// Read embedded font
-	println(webFonts.ReadDir("."))
-
 	fontData, err := webFonts.ReadFile(fontFilename)
 	if err != nil {
 		panic(err)
@@ -91,26 +85,6 @@ func rebuildFonts() {
 	_ = fontAtlas.AddFontFromMemoryTTFV(dataPtr, dataLen, fontSize, cfg, ranges)
 	_, _, _, _ = fontAtlas.GetTextureDataAsRGBA32()
 }
-
-//func mainold() {
-//	//
-//	// The build tags listed below are required to compile with AllenDang/cimgui-go. You
-//	// may, however, use the damntourists/cimgui-go-lite to bypass this requirement.
-//	// Please refer to the go.mod file for more info.
-//	//
-//	// * exclude_cimgui_sdl
-//	// * exclude_cimgui_glfw
-//	//
-//	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-//
-//	adapter.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
-//	adapter.SetGame(MyGame{})
-//
-//	adapter.Run(func() {
-//		rebuildFonts()
-//		_ = ebiten.RunGame(adapter.Game())
-//	})
-//}
 
 func main() {
 	backend := ebitenbackend.NewEbitenBackend()
