@@ -9,8 +9,9 @@ Credit for rendering code goes to https://github.com/gabstv/ebiten-imgui. Unfort
 
 
 ## Important!
-This repository is designed to work with https://github.com/AllenDang/cimgui-go. A caveat
-of this, however, is that you _must_ include the following buildtags:
+This repository is designed to work with https://github.com/AllenDang/cimgui-go; however,
+the cimgui-go repository has their own sdl and glfw implementations. Luckly,these can be 
+disabled at build that we can use ebiten's window by supplying the following build tags:
 * exclude_cimgui_sdl
 * exclude_cimgui_glfw
 
@@ -18,5 +19,9 @@ example:
 ```
 go run -tags exclude_cimgui_glfw,exclude_cimgui_sdl examples/basic/main.go
 ```
-*Failure to do so will result in a number of ld failures. Ebiten has it's own GLFW 
-implementation that conflicts with vanilla cimgui-go*
+*Trying to build without the cimgui exclude build tags will cause the compiler to throw
+a bunch of ld errors.*
+
+
+## TODO
+* Add gamepad support

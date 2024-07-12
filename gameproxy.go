@@ -7,7 +7,7 @@ import (
 
 type GameProxy struct {
 	game    ebiten.Game
-	adapter *EbitenAdapter
+	backend *EbitenBackend
 
 	width, height             float64
 	screenWidth, screenHeight int
@@ -26,16 +26,16 @@ func (g *GameProxy) Game() ebiten.Game {
 	return g.game
 }
 
-// Update - Update UI and game in tandem. Handle inputs
+// Update - Update UI and proxy in tandem. Handle inputs
 func (g *GameProxy) Update() error {
 	if g.game == nil {
-		panic("No game to update!")
+		panic("No proxy to update!")
 	}
 
 	io := imgui.CurrentIO()
 
 	// Sync keyboard
-	CurrentAdapter.inputChars = sendInput(imgui.CurrentIO(), CurrentAdapter.inputChars)
+	g.backend.inputChars = sendInput(imgui.CurrentIO(), g.backend.inputChars)
 
 	// Sync mouse wheel
 	xoff, yoff := ebiten.Wheel()
@@ -103,24 +103,28 @@ func (g *GameProxy) Draw(screen *ebiten.Image) {
 	if g.gameScreen != nil {
 		destination = g.gameScreen
 	}
+
 	destination.Clear()
 	g.game.Draw(destination)
 
 	imgui.Render()
 
-	if CurrentAdapter.ClipMask {
-		if CurrentAdapter.lmask == nil {
-			w, h := screen.Size()
-			CurrentAdapter.lmask = ebiten.NewImage(w, h)
+	if g.backend.clipMask {
+		if g.backend.lmask == nil {
+			w := screen.Bounds().Dx()
+			h := screen.Bounds().Dy()
+			g.backend.lmask = ebiten.NewImage(w, h)
 		} else {
-			w1, h1 := screen.Size()
-			w2, h2 := CurrentAdapter.lmask.Size()
+			w1 := screen.Bounds().Dx()
+			h1 := screen.Bounds().Dy()
+			w2 := g.backend.lmask.Bounds().Dx()
+			h2 := g.backend.lmask.Bounds().Dy()
 			if w1 != w2 || h1 != h2 {
-				CurrentAdapter.lmask.Dispose()
-				CurrentAdapter.lmask = ebiten.NewImage(w1, h1)
+				g.backend.lmask.Deallocate()
+				g.backend.lmask = ebiten.NewImage(w1, h1)
 			}
 		}
-		RenderMasked(screen, CurrentAdapter.lmask, imgui.CurrentDrawData(), Cache, g.filter)
+		RenderMasked(screen, g.backend.lmask, imgui.CurrentDrawData(), Cache, g.filter)
 	} else {
 		Render(screen, imgui.CurrentDrawData(), Cache, g.filter)
 	}
@@ -135,8 +139,8 @@ func (g *GameProxy) Layout(outsideWidth, outsideHeight int) (int, int) {
 	io := imgui.CurrentIO()
 	io.SetDisplaySize(imgui.Vec2{X: float32(width), Y: float32(height)})
 
-	// Set game screen height/width to match wrapped game
-	//screenWidth, screenHeight := g.game.Layout(outsideWidth, outsideHeight)
+	// Set proxy screen height/width to match wrapped proxy
+	//screenWidth, screenHeight := g.proxy.Layout(outsideWidth, outsideHeight)
 	//g.screenWidth = screenWidth   //g.Screen().Bounds().Dx()
 	//g.screenHeight = screenHeight //g.Screen().Bounds().Dy()
 

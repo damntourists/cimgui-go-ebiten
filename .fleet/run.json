@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "[Example] Custom Font",
+            "type": "go",
+            "workingDir": "$PROJECT_DIR$",
+            "goExecPath": "$USER_HOME$/.goenv/versions/1.22.0/bin/go",
+            "buildParams": [
+                "$PROJECT_DIR$/examples/custom_font"
+            ],
+            "environment": {
+                "GOFLAGS": "--tags=exclude_cimgui_sdl,exclude_cimgui_glfw"
+            }
+        },
+        {
+            "name": "[Example] Game Within UI",
+            "type": "go",
+            "workingDir": "$PROJECT_DIR$",
+            "goExecPath": "$USER_HOME$/.goenv/versions/1.22.0/bin/go",
+            "buildParams": [
+                "$PROJECT_DIR$/examples/game_within_ui"
+            ],
+            "environment": {
+                "GOFLAGS": "--tags=exclude_cimgui_sdl,exclude_cimgui_glfw"
+            }
+        },
+        {
+            "name": "[Example] UI Over Game",
+            "type": "go",
+            "workingDir": "$PROJECT_DIR$",
+            "goExecPath": "$USER_HOME$/.goenv/versions/1.22.0/bin/go",
+            "buildParams": [
+                "$PROJECT_DIR$/examples/ui_over_game"
+            ],
+            "environment": {
+                "GOFLAGS": "--tags=exclude_cimgui_sdl,exclude_cimgui_glfw"
+            }
+        }
+    ]
+}
