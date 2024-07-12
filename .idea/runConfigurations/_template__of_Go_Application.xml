@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="cimgui-go-ebiten" />
+    <working_directory value="$PROJECT_DIR$" />
+    <useCustomBuildTags value="true" />
+    <kind value="PACKAGE" />
+    <package value="github.com/damntourists/cimgui-go-ebiten" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>

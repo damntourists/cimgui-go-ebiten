@@ -6,7 +6,7 @@ import (
 )
 
 type GameProxy struct {
-	game    *ebiten.Game
+	game    ebiten.Game
 	backend *EbitenBackend
 
 	width, height             float64
@@ -26,10 +26,10 @@ func (g *GameProxy) Game() ebiten.Game {
 	return g.game
 }
 
-// Update - Update UI and game in tandem. Handle inputs
+// Update - Update UI and proxy in tandem. Handle inputs
 func (g *GameProxy) Update() error {
 	if g.game == nil {
-		panic("No game to update!")
+		panic("No proxy to update!")
 	}
 
 	io := imgui.CurrentIO()
@@ -86,8 +86,8 @@ func (g *GameProxy) Update() error {
 	}
 
 	imgui.NewFrame()
-	err :=
-		imgui.EndFrame()
+	err := g.game.Update()
+	imgui.EndFrame()
 	return err
 }
 
@@ -139,8 +139,8 @@ func (g *GameProxy) Layout(outsideWidth, outsideHeight int) (int, int) {
 	io := imgui.CurrentIO()
 	io.SetDisplaySize(imgui.Vec2{X: float32(width), Y: float32(height)})
 
-	// Set game screen height/width to match wrapped game
-	//screenWidth, screenHeight := g.game.Layout(outsideWidth, outsideHeight)
+	// Set proxy screen height/width to match wrapped proxy
+	//screenWidth, screenHeight := g.proxy.Layout(outsideWidth, outsideHeight)
 	//g.screenWidth = screenWidth   //g.Screen().Bounds().Dx()
 	//g.screenHeight = screenHeight //g.Screen().Bounds().Dy()
 

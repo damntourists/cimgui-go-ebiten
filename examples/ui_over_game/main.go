@@ -2,17 +2,15 @@ package main
 
 import (
 	imgui "github.com/AllenDang/cimgui-go"
-	backend "github.com/damntourists/cimgui-go-ebiten"
+	"github.com/damntourists/cimgui-go-ebiten"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
 )
 
-var adapter = backend.NewEbitenAdapter()
-
 type MyGame struct{}
 
-func (m MyGame) Draw(screen *ebiten.Image) {
+func (m *MyGame) Draw(screen *ebiten.Image) {
 	var tileSize = 32
 
 	var gridColor = color.RGBA{R: 100, G: 100, B: 100, A: 1}
@@ -37,30 +35,22 @@ func (m MyGame) Draw(screen *ebiten.Image) {
 	}
 }
 
-func (m MyGame) Update() error {
+func (m *MyGame) Update() error {
 	imgui.ShowDemoWindow()
 	return nil
 }
 
-func (m MyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+func (m *MyGame) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return outsideWidth, outsideHeight
 }
 
 func main() {
-	//
-	// The build tags listed below are required to compile with AllenDang/cimgui-go. You
-	// may, however, use the damntourists/cimgui-go-lite to bypass this requirement.
-	// Please refer to the go.mod file for more info.
-	//
-	// * exclude_cimgui_sdl
-	// * exclude_cimgui_glfw
-	//
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	backend := ebitenbackend.NewEbitenBackend()
+	backend.SetGame(&MyGame{})
 
-	adapter.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
-	adapter.SetGame(MyGame{})
-	adapter.Run(func() {
-		_ = ebiten.RunGame(adapter.Game())
+	backend.CreateWindow("Hello from cimgui-go-ebiten!", 800, 600)
+	backend.Run(func() {
+		_ = ebiten.RunGame(backend.Game())
 	})
 
 }
