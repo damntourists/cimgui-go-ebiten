@@ -17,7 +17,7 @@ disabled at build that we can use ebiten's window by supplying the following bui
 
 example:
 ```
-go run -tags exclude_cimgui_glfw,exclude_cimgui_sdl examples/basic/main.go
+go run -tags exclude_cimgui_glfw,exclude_cimgui_sdl examples/ui_over_game/main.go
 ```
 *Trying to build without the cimgui exclude build tags will cause the compiler to throw
 a bunch of ld errors.*

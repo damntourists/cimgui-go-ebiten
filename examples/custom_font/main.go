@@ -2,7 +2,7 @@ package main
 
 import (
 	imgui "github.com/AllenDang/cimgui-go"
-	"github.com/damntourists/cimgui-go-ebiten"
+	"github.com/damntourists/cimgui-go-ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"

@@ -3,7 +3,7 @@ package ebitenbackend
 import (
 	"fmt"
 	imgui "github.com/AllenDang/cimgui-go"
-	"github.com/damntourists/cimgui-go-ebiten/internal/native"
+	"github.com/damntourists/cimgui-go-ebiten/v2/internal/native"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	"unsafe"
@@ -229,13 +229,15 @@ func render(target *ebiten.Image, mask *ebiten.Image, drawData *imgui.DrawData,
 						opt)
 				} else {
 					mask.Clear()
-					opt2.GeoM.Reset()
-					opt2.GeoM.Translate(float64(clipRect.X), float64(clipRect.Y))
-					mask.DrawTriangles(vbuf, indices[idxOffset:idxOffset+ecount], tx, opt)
-					target.DrawImage(mask.SubImage(image.Rectangle{
-						Min: image.Pt(int(clipRect.X), int(clipRect.Y)),
-						Max: image.Pt(int(clipRect.Z), int(clipRect.W)),
-					}).(*ebiten.Image), opt2)
+					if opt2 != nil {
+						opt2.GeoM.Reset()
+						opt2.GeoM.Translate(float64(clipRect.X), float64(clipRect.Y))
+						mask.DrawTriangles(vbuf, indices[idxOffset:idxOffset+ecount], tx, opt)
+						target.DrawImage(mask.SubImage(image.Rectangle{
+							Min: image.Pt(int(clipRect.X), int(clipRect.Y)),
+							Max: image.Pt(int(clipRect.Z), int(clipRect.W)),
+						}).(*ebiten.Image), opt2)
+					}
 				}
 			}
 		}

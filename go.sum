@@ -1,5 +1,7 @@
 github.com/AllenDang/cimgui-go v0.0.0-20240611070805-39b5aa2438db h1:QHGAagso1434SEcgE5XCYliC6oFXnqNJIvIFJij7CdY=
 github.com/AllenDang/cimgui-go v0.0.0-20240611070805-39b5aa2438db/go.mod h1:e6feXR4FrATVY/UrWS3si3KCJOm0wruwbxVI/B85fUM=
+github.com/damntourists/cimgui-go-ebiten v1.3.3 h1:ZqNeMzBX3jtFka/wJdZifThynzpF4bREasRZmF25ia0=
+github.com/damntourists/cimgui-go-ebiten v1.3.3/go.mod h1:rzMSIvlek9sC9+GkMZFGZbbMcDh327c7IRZgl+/jEZk=
 github.com/ebitengine/gomobile v0.0.0-20240518074828-e86332849895 h1:48bCqKTuD7Z0UovDfvpCn7wZ0GUZ+yosIteNDthn3FU=
 github.com/ebitengine/gomobile v0.0.0-20240518074828-e86332849895/go.mod h1:XZdLv05c5hOZm3fM2NlJ92FyEZjnslcMcNRrhxs8+8M=
 github.com/ebitengine/hideconsole v1.0.0 h1:5J4U0kXF+pv/DhiXt5/lTz0eO5ogJ1iXb8Yj1yReDqE=

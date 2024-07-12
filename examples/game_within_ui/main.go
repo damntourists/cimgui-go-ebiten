@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	imgui "github.com/AllenDang/cimgui-go"
-	"github.com/damntourists/cimgui-go-ebiten"
+	"github.com/damntourists/cimgui-go-ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/images"
 	"image"

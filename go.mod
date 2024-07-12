@@ -1,4 +1,4 @@
-module github.com/damntourists/cimgui-go-ebiten
+module github.com/damntourists/cimgui-go-ebiten/v2
 
 go 1.22
 
