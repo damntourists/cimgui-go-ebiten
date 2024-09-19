@@ -1,3 +1,9 @@
+# UPDATE 2024-09-18
+**This backend is [now available](https://github.com/AllenDang/cimgui-go/pull/296) in [cimgui-go](https://github.com/AllenDang/cimgui-go)! 🎉🎉**
+
+I will be archiving this repositoring soon since it is now redundant. 
+
+
 # cimgui-go-ebiten
 [Ebiten](https://ebitengine.org/) backend for [cimgui-go](https://github.com/AllenDang/cimgui-go)!
 
